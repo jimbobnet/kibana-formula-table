@@ -15,8 +15,11 @@ import { CELL_VALUE_TRIGGER } from '@kbn/ui-actions-plugin/common/trigger_ids';
 import { computeColumnsForTable } from './computed_column_engine';
 import { computeColumnTotal } from './column_totals';
 import { formatComputedColumnValue } from './format_computed_value';
+import { compileTemplate, renderTemplate, buildTemplateContext } from './handlebars_template';
+import { SafeHtmlCell } from './safe_html_cell';
+import type { TemplateDelegate } from '@kbn/handlebars';
 import { getUiActions } from '../../services';
-import type { VisTable, EnhancedTableParams, DocumentTableParams, VisTableRow } from '../../../common/types';
+import type { VisTable, EnhancedTableParams, DocumentTableParams } from '../../../common/types';
 
 type TableParams = EnhancedTableParams | DocumentTableParams;
 
@@ -108,10 +111,16 @@ export const TableView: React.FC<TableViewProps> = ({
     });
   }, [allRows, filterText, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
 
-  // Reset to first page when filter changes.
+  // Reset to first page when filter changes or dataset shrinks past current page.
   useEffect(() => {
     setPageIndex(0);
   }, [filterText]);
+
+  useEffect(() => {
+    if (pageIndex > 0 && pageIndex * pageSize >= filteredRows.length) {
+      setPageIndex(0);
+    }
+  }, [filteredRows.length, pageIndex, pageSize]);
 
   const sortedRows = useMemo(() => {
     if (!sortColumns.length) return filteredRows;
@@ -128,17 +137,12 @@ export const TableView: React.FC<TableViewProps> = ({
     });
   }, [filteredRows, sortColumns]);
 
-  const paginatedRows = useMemo(() => {
-    const start = pageIndex * pageSize;
-    return sortedRows.slice(start, start + pageSize);
-  }, [sortedRows, pageIndex, pageSize]);
-
-  // Ref so cell action closures always see the latest paginatedRows without
-  // forcing gridColumns to rebuild on every page change.
-  const paginatedRowsRef = useRef(paginatedRows);
+  // Ref so cell action closures always see the latest sortedRows without
+  // forcing gridColumns to rebuild on every sort/filter change.
+  const sortedRowsRef = useRef(sortedRows);
   useEffect(() => {
-    paginatedRowsRef.current = paginatedRows;
-  }, [paginatedRows]);
+    sortedRowsRef.current = sortedRows;
+  }, [sortedRows]);
 
   // Totals are always computed from allRows (not filtered), following legacy behavior.
   // The first column shows totalLabel if provided; remaining columns show computed totals.
@@ -155,6 +159,17 @@ export const TableView: React.FC<TableViewProps> = ({
     });
     return row;
   }, [visParams.showTotal, visParams.totalFunc, visParams.totalLabel, allColumns, allRows]);
+
+  // Compile Handlebars templates once per computedColumns change.
+  const compiledTemplates = useMemo(() => {
+    const map = new Map<number, TemplateDelegate>();
+    (visParams.computedColumns ?? []).filter((c) => c.enabled).forEach((cc, idx) => {
+      if (cc.applyTemplate && cc.template) {
+        try { map.set(idx, compileTemplate(cc.template)); } catch { /* skip invalid template */ }
+      }
+    });
+    return map;
+  }, [visParams.computedColumns]);
 
   // Precompute CELL_VALUE_TRIGGER-compatible actions for each column (async, from uiActions registry).
   // Keyed by column ID; empty array for columns with no compatible actions.
@@ -193,13 +208,14 @@ export const TableView: React.FC<TableViewProps> = ({
   }, [allColumns]);
 
   // Build EuiDataGrid column definitions including cellActions for filter and CELL_VALUE_TRIGGER.
+  // rowIndex passed to cell actions is the absolute index into sortedRows.
   const gridColumns: EuiDataGridColumn[] = useMemo(() => {
     return allColumns.map((col, colIndex) => {
       const cellActions: EuiDataGridColumnCellAction[] = [];
 
       if (col.filterable) {
         const buildFilterEvent = (rowIndex: number, negate: boolean) => {
-          const rows = paginatedRowsRef.current;
+          const rows = sortedRowsRef.current;
           const row = rows[rowIndex];
           if (!row) return;
           const flatTable = {
@@ -214,7 +230,7 @@ export const TableView: React.FC<TableViewProps> = ({
         };
 
         cellActions.push(({ rowIndex, Component }: EuiDataGridColumnCellActionProps) => {
-          const row = paginatedRowsRef.current[rowIndex];
+          const row = sortedRowsRef.current[rowIndex];
           if (!row || row[col.id] == null) return null;
           return (
             <Component
@@ -228,7 +244,7 @@ export const TableView: React.FC<TableViewProps> = ({
         });
 
         cellActions.push(({ rowIndex, Component }: EuiDataGridColumnCellActionProps) => {
-          const row = paginatedRowsRef.current[rowIndex];
+          const row = sortedRowsRef.current[rowIndex];
           if (!row || row[col.id] == null) return null;
           return (
             <Component
@@ -247,7 +263,7 @@ export const TableView: React.FC<TableViewProps> = ({
       compatibleActions.forEach((action: any) => {
         const context = { data: [{ columnMeta: col.meta }] };
         cellActions.push(({ rowIndex, Component }: EuiDataGridColumnCellActionProps) => {
-          const row = paginatedRowsRef.current[rowIndex];
+          const row = sortedRowsRef.current[rowIndex];
           if (!row || row[col.id] == null) return null;
           const cellContext = { data: [{ value: row[col.id], columnMeta: col.meta }] };
           return (
@@ -273,11 +289,6 @@ export const TableView: React.FC<TableViewProps> = ({
     });
   }, [allColumns, columnCompatibleActions, fireEvent]);
 
-  const displayedRows = useMemo(() => {
-    if (!totalsRow) return paginatedRows;
-    return [...paginatedRows, totalsRow as VisTableRow];
-  }, [paginatedRows, totalsRow]);
-
   const trailingControlColumns: EuiDataGridControlColumn[] = useMemo(() => {
     if (!hasRowClickActions) return [];
     return [
@@ -286,8 +297,6 @@ export const TableView: React.FC<TableViewProps> = ({
         width: 40,
         headerCellRender: () => null,
         rowCellRender: ({ rowIndex }) => {
-          if (totalsRow && rowIndex === displayedRows.length - 1) return null;
-          const actualRowIndex = pageIndex * pageSize + rowIndex;
           const flatTable = {
             type: 'datatable' as const,
             columns: allColumns.map((c) => ({
@@ -306,7 +315,7 @@ export const TableView: React.FC<TableViewProps> = ({
                 fireEvent({
                   name: 'tableRowContextMenuClick',
                   data: {
-                    rowIndex: actualRowIndex,
+                    rowIndex,
                     table: flatTable,
                     columns: allColumns.map((c) => c.id),
                   },
@@ -317,9 +326,40 @@ export const TableView: React.FC<TableViewProps> = ({
         },
       },
     ];
-  }, [hasRowClickActions, allColumns, allRows, pageIndex, pageSize, displayedRows, totalsRow, fireEvent]);
+  }, [hasRowClickActions, allColumns, allRows, fireEvent]);
 
   const filterBarWidth = visParams.filterBarWidth ?? '50%';
+
+  // Render a computed column cell value with optional Handlebars template.
+  const renderComputedCell = (
+    columnId: string,
+    rowData: Record<string, unknown>,
+    isTotals: boolean
+  ) => {
+    const enabledComputedCols = (visParams.computedColumns ?? []).filter((c) => c.enabled);
+    const ccMatch = columnId.match(/^computed_col_(\d+)$/);
+    if (!ccMatch) return null;
+    const ccIdx = parseInt(ccMatch[1], 10);
+    const cc = enabledComputedCols[ccIdx];
+    const rawVal = rowData[columnId];
+    const formatted = cc ? formatComputedColumnValue(rawVal, cc) : String(rawVal ?? '');
+    const align = cc?.alignment ?? 'left';
+
+    const compiled = compiledTemplates.get(ccIdx);
+    const applyTpl = isTotals ? (cc?.applyTemplateOnTotal ?? false) : (cc?.applyTemplate ?? false);
+
+    if (compiled && applyTpl) {
+      const ctx = buildTemplateContext(allColumns, rowData, totalsRow, totalHits, formatted, rawVal);
+      const html = renderTemplate(compiled, ctx);
+      return isTotals
+        ? <SafeHtmlCell html={html} tag="strong" />
+        : <SafeHtmlCell html={html} style={{ display: 'block', textAlign: align }} />;
+    }
+
+    return isTotals
+      ? <strong>{formatted}</strong>
+      : <span style={{ display: 'block', textAlign: align }}>{formatted}</span>;
+  };
 
   return (
     <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
@@ -350,29 +390,28 @@ export const TableView: React.FC<TableViewProps> = ({
         aria-label={rawTable.title ?? 'Enhanced Table 2'}
         columns={gridColumns}
         columnVisibility={{ visibleColumns, setVisibleColumns }}
-        rowCount={displayedRows.length}
+        rowCount={sortedRows.length}
         renderCellValue={({ rowIndex, columnId }) => {
-          const isTotalsRow = Boolean(totalsRow) && rowIndex === displayedRows.length - 1;
+          const row = sortedRows[rowIndex];
 
-          // Computed column: apply format + alignment.
-          const ccMatch = !isTotalsRow && columnId.match(/^computed_col_(\d+)$/);
-          if (ccMatch) {
-            const ccIdx = parseInt(ccMatch[1], 10);
-            const cc = (visParams.computedColumns ?? []).filter((c) => c.enabled)[ccIdx];
-            const rawVal = displayedRows[rowIndex]?.[columnId];
-            const formatted = cc ? formatComputedColumnValue(rawVal, cc) : String(rawVal ?? '');
-            const align = cc?.alignment ?? 'left';
-            return <span style={{ display: 'block', textAlign: align }}>{formatted}</span>;
-          }
+          const ccResult = row !== undefined
+            ? renderComputedCell(columnId, row, false)
+            : null;
+          if (ccResult !== null) return ccResult;
 
-          const row = displayedRows[rowIndex];
           const val = row ? (row[columnId] != null ? String(row[columnId]) : null) : null;
-
-          if (isTotalsRow) {
-            return <strong>{val}</strong>;
-          }
           return <>{val}</>;
         }}
+        renderFooterCellValue={
+          totalsRow
+            ? ({ columnId }) => {
+                const result = renderComputedCell(columnId, totalsRow, true);
+                if (result !== null) return result;
+                const val = totalsRow[columnId];
+                return val != null ? <strong>{val}</strong> : null;
+              }
+            : undefined
+        }
         pagination={{
           pageIndex,
           pageSize,

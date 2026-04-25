@@ -41,6 +41,9 @@ const NEW_COMPUTED_COLUMN: ComputedColumn = {
   applyAlignmentOnTotal: true,
   computeTotalUsingFormula: false,
   enabled: true,
+  applyTemplate: false,
+  applyTemplateOnTotal: false,
+  template: '',
 };
 
 export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({

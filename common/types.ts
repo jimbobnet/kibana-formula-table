@@ -15,6 +15,9 @@ export interface ComputedColumn {
   computeTotalUsingFormula: boolean;
   enabled: boolean;
   customColumnPosition?: number;
+  applyTemplate?: boolean;
+  applyTemplateOnTotal?: boolean;
+  template?: string;
 }
 
 export interface FieldColumn {

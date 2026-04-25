@@ -9,7 +9,9 @@ import {
   EuiFlexItem,
   EuiFormRow,
   EuiSelect,
+  EuiSpacer,
   EuiSwitch,
+  EuiTextArea,
 } from '@elastic/eui';
 import type { ComputedColumn } from '../../../common/types';
 
@@ -194,6 +196,44 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
             onChange={(e) => update({ enabled: e.target.checked })}
           />
         </EuiFlexItem>
+
+        <EuiFlexItem>
+          <EuiSpacer size="xs" />
+          <EuiSwitch
+            compressed
+            label={i18n.translate('enhancedTable2.computedColumn.applyTemplate', { defaultMessage: 'Apply Handlebars template' })}
+            checked={column.applyTemplate ?? false}
+            onChange={(e) => update({ applyTemplate: e.target.checked })}
+          />
+        </EuiFlexItem>
+
+        {column.applyTemplate && (
+          <>
+            <EuiFlexItem>
+              <EuiFormRow
+                label={i18n.translate('enhancedTable2.computedColumn.template', { defaultMessage: 'Template' })}
+                helpText="Variables: {{value}}, {{rawValue}}, {{col0}}, {{formattedCol0}}, {{total0}}, {{totalHits}}, {{encodeURIComponent col0}}"
+                display="rowCompressed"
+              >
+                <EuiTextArea
+                  compressed
+                  rows={3}
+                  placeholder='<a href="/path?q={{encodeURIComponent col0}}">{{value}}</a>'
+                  value={column.template ?? ''}
+                  onChange={(e) => update({ template: e.target.value })}
+                />
+              </EuiFormRow>
+            </EuiFlexItem>
+            <EuiFlexItem>
+              <EuiSwitch
+                compressed
+                label={i18n.translate('enhancedTable2.computedColumn.applyTemplateOnTotal', { defaultMessage: 'Apply template on total row' })}
+                checked={column.applyTemplateOnTotal ?? false}
+                onChange={(e) => update({ applyTemplateOnTotal: e.target.checked })}
+              />
+            </EuiFlexItem>
+          </>
+        )}
       </EuiFlexGroup>
     </EuiAccordion>
   );

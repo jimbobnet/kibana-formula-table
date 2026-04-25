@@ -11,5 +11,8 @@
     "server/**/*.ts",
     "../../typings/**/*"
   ],
+  "kbn_references": [
+    "@kbn/handlebars"
+  ],
   "exclude": []
 }
