@@ -2,15 +2,16 @@ import React, { useEffect } from 'react';
 import { i18n } from '@kbn/i18n';
 import {
   EuiButtonEmpty,
+  EuiFieldNumber,
+  EuiFieldText,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiFormRow,
   EuiPanel,
+  EuiSelect,
   EuiSpacer,
   EuiSwitch,
   EuiTitle,
-  EuiFormRow,
-  EuiSelect,
-  EuiFieldNumber,
-  EuiFlexGroup,
-  EuiFlexItem,
 } from '@elastic/eui';
 import type { VisEditorOptionsProps } from '@kbn/visualizations-plugin/public';
 import { ComputedColumnEditorItem } from './computed_column_editor';
@@ -109,6 +110,20 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
           checked={stateParams.addRowNumberColumn}
           onChange={(e) => setValue('addRowNumberColumn', e.target.checked)}
         />
+        <EuiSpacer size="s" />
+
+        <EuiFormRow
+          label={i18n.translate('enhancedTable2.options.hiddenColumns', { defaultMessage: 'Hidden columns' })}
+          helpText={i18n.translate('enhancedTable2.options.hiddenColumnsHelp', { defaultMessage: 'Comma-separated column indices to hide (e.g. 0,2)' })}
+          display="rowCompressed"
+        >
+          <EuiFieldText
+            compressed
+            placeholder="0,2"
+            value={stateParams.hiddenColumns ?? ''}
+            onChange={(e) => setValue('hiddenColumns', e.target.value)}
+          />
+        </EuiFormRow>
       </EuiPanel>
 
       <EuiSpacer size="m" />
@@ -138,6 +153,74 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
                 onChange={(e) => setValue('totalFunc', e.target.value)}
               />
             </EuiFormRow>
+            <EuiSpacer size="s" />
+            <EuiFormRow
+              label={i18n.translate('enhancedTable2.options.totalLabel', { defaultMessage: 'Total row label' })}
+              helpText={i18n.translate('enhancedTable2.options.totalLabelHelp', { defaultMessage: 'Label shown in the first column of the totals row' })}
+              display="rowCompressed"
+            >
+              <EuiFieldText
+                compressed
+                placeholder={i18n.translate('enhancedTable2.options.totalLabelPlaceholder', { defaultMessage: 'Total' })}
+                value={stateParams.totalLabel ?? ''}
+                onChange={(e) => setValue('totalLabel', e.target.value)}
+              />
+            </EuiFormRow>
+          </>
+        )}
+      </EuiPanel>
+
+      <EuiSpacer size="m" />
+
+      {/* FILTER BAR */}
+      <EuiPanel paddingSize="s">
+        <EuiTitle size="xs">
+          <h3>{i18n.translate('enhancedTable2.options.filterBar', { defaultMessage: 'Filter bar' })}</h3>
+        </EuiTitle>
+        <EuiSpacer size="s" />
+
+        <EuiSwitch
+          compressed
+          label={i18n.translate('enhancedTable2.options.showFilterBar', { defaultMessage: 'Show filter bar' })}
+          checked={stateParams.showFilterBar ?? false}
+          onChange={(e) => setValue('showFilterBar', e.target.checked)}
+        />
+
+        {stateParams.showFilterBar && (
+          <>
+            <EuiSpacer size="s" />
+            <EuiFormRow
+              label={i18n.translate('enhancedTable2.options.filterBarWidth', { defaultMessage: 'Filter bar width' })}
+              display="rowCompressed"
+            >
+              <EuiFieldText
+                compressed
+                placeholder="50%"
+                value={stateParams.filterBarWidth ?? '50%'}
+                onChange={(e) => setValue('filterBarWidth', e.target.value)}
+              />
+            </EuiFormRow>
+            <EuiSpacer size="s" />
+            <EuiSwitch
+              compressed
+              label={i18n.translate('enhancedTable2.options.filterCaseSensitive', { defaultMessage: 'Case sensitive' })}
+              checked={stateParams.filterCaseSensitive ?? false}
+              onChange={(e) => setValue('filterCaseSensitive', e.target.checked)}
+            />
+            <EuiSpacer size="s" />
+            <EuiSwitch
+              compressed
+              label={i18n.translate('enhancedTable2.options.filterTermsSeparately', { defaultMessage: 'Match all terms separately' })}
+              checked={stateParams.filterTermsSeparately ?? false}
+              onChange={(e) => setValue('filterTermsSeparately', e.target.checked)}
+            />
+            <EuiSpacer size="s" />
+            <EuiSwitch
+              compressed
+              label={i18n.translate('enhancedTable2.options.filterBarHideable', { defaultMessage: 'Filter bar hideable' })}
+              checked={stateParams.filterBarHideable ?? false}
+              onChange={(e) => setValue('filterBarHideable', e.target.checked)}
+            />
           </>
         )}
       </EuiPanel>

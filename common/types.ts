@@ -28,6 +28,7 @@ export interface EnhancedTableParams {
   sort: { columnIndex: number | null; direction: 'asc' | 'desc' | null };
   showTotal: boolean;
   totalFunc: 'sum' | 'avg' | 'min' | 'max' | 'count';
+  totalLabel?: string;
   computedColumns: ComputedColumn[];
   showPartialRows: boolean;
   showMetricsAtAllLevels: boolean;
@@ -35,6 +36,14 @@ export interface EnhancedTableParams {
   stripedRows: boolean;
   addRowNumberColumn: boolean;
   hideExportLinks: boolean;
+  hiddenColumns?: string;
+  showFilterBar?: boolean;
+  filterCaseSensitive?: boolean;
+  filterBarHideable?: boolean;
+  filterAsYouType?: boolean;
+  filterTermsSeparately?: boolean;
+  filterHighlightResults?: boolean;
+  filterBarWidth?: string;
 }
 
 export interface DocumentTableParams {
@@ -42,10 +51,19 @@ export interface DocumentTableParams {
   sort: { columnIndex: number | null; direction: 'asc' | 'desc' | null };
   showTotal: boolean;
   totalFunc: 'sum' | 'avg' | 'min' | 'max' | 'count';
+  totalLabel?: string;
   computedColumns: ComputedColumn[];
   stripedRows: boolean;
   addRowNumberColumn: boolean;
   hideExportLinks: boolean;
+  hiddenColumns?: string;
+  showFilterBar?: boolean;
+  filterCaseSensitive?: boolean;
+  filterBarHideable?: boolean;
+  filterAsYouType?: boolean;
+  filterTermsSeparately?: boolean;
+  filterHighlightResults?: boolean;
+  filterBarWidth?: string;
   fieldColumns: FieldColumn[];
   hitsSize: number;
   sortField: { name: string };
