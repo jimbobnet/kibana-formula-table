@@ -1,8 +1,14 @@
 export interface ComputedColumn {
   label: string;
   formula: string;
-  format: 'string' | 'number' | 'date';
+  format: 'string' | 'number' | 'date' | 'duration';
   pattern?: string;
+  datePattern?: string;
+  durationInputFormat?: 'milliseconds' | 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years';
+  durationOutputFormat?: 'humanize' | 'humanizeVeryPrecise' | 'asMilliseconds' | 'asSeconds' | 'asMinutes' | 'asHours' | 'asDays' | 'asWeeks' | 'asMonths' | 'asYears';
+  durationOutputPrecision?: number;
+  durationUseShortSuffix?: boolean;
+  durationIncludeSpaceWithSuffix?: boolean;
   alignment: 'left' | 'center' | 'right';
   applyAlignmentOnTitle: boolean;
   applyAlignmentOnTotal: boolean;

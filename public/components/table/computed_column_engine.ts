@@ -23,6 +23,11 @@ const getParser = (): Parser => {
   return sharedParser;
 };
 
+const toNum = (v: unknown): number | null => {
+  const n = typeof v === 'number' ? v : Number(v);
+  return isNaN(n) ? null : n;
+};
+
 export function computeColumnsForTable(
   existingColumns: VisTableColumn[],
   rows: VisTableRow[],
@@ -45,6 +50,10 @@ export function computeColumnsForTable(
   const newColumns: VisTableColumn[] = [...existingColumns];
   const newRows: VisTableRow[] = rows.map((row) => ({ ...row }));
 
+  // Mutable index updated before each row's evaluate() so cell()/formattedCell()
+  // closures can reference the current row without rebuilding the parser per row.
+  let currentRowIdx = 0;
+
   enabledCols.forEach((cc, ccIdx) => {
     const colId = `computed_col_${ccIdx}`;
 
@@ -62,15 +71,48 @@ export function computeColumnsForTable(
       filterable: false,
     });
 
+    // Register cell/formattedCell with closures over newRows and currentRowIdx.
+    // These are re-registered per computed column so they see the rows that exist
+    // at the time this column is being evaluated.
+    const rowsSnapshot = newRows;
+
+    parser.functions.cell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
+      const rowIdx =
+        rowRef === 'first' ? 0
+        : rowRef === 'last' ? rowsSnapshot.length - 1
+        : currentRowIdx + (rowRef as number);
+      const targetRow = rowsSnapshot[rowIdx];
+      if (!targetRow) return defaultValue;
+      const col = existingColumns[colRef];
+      if (!col) return defaultValue;
+      const n = toNum(targetRow[col.id]);
+      return n !== null ? n : defaultValue;
+    };
+
+    parser.functions.formattedCell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
+      const rowIdx =
+        rowRef === 'first' ? 0
+        : rowRef === 'last' ? rowsSnapshot.length - 1
+        : currentRowIdx + (rowRef as number);
+      const targetRow = rowsSnapshot[rowIdx];
+      if (!targetRow) return defaultValue;
+      const col = existingColumns[colRef];
+      if (!col) return defaultValue;
+      const v = targetRow[col.id];
+      return v != null ? String(v) : defaultValue;
+    };
+
     newRows.forEach((row, rowIdx) => {
+      currentRowIdx = rowIdx;
+
       const vars: Record<string, unknown> = { totalHits };
 
       existingColumns.forEach((col, colIdx) => {
         const rawVal = row[col.id];
-        const numVal = typeof rawVal === 'number' ? rawVal : Number(rawVal);
-        const numOrNull = isNaN(numVal) ? null : numVal;
+        const numOrNull = toNum(rawVal);
 
         vars[`col${colIdx}`] = numOrNull;
+        vars[`formattedCol${colIdx}`] = rawVal != null ? String(rawVal) : '';
         vars[col.name] = numOrNull;
         vars[`total${colIdx}`] = totals[colIdx];
       });

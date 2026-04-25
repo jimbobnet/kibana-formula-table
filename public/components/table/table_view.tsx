@@ -11,6 +11,7 @@ import {
 } from '@elastic/eui';
 import { computeColumnsForTable } from './computed_column_engine';
 import { computeColumnTotal } from './column_totals';
+import { formatComputedColumnValue } from './format_computed_value';
 import type { VisTable, EnhancedTableParams, DocumentTableParams, VisTableRow } from '../../../common/types';
 
 type TableParams = EnhancedTableParams | DocumentTableParams;
@@ -276,8 +277,20 @@ export const TableView: React.FC<TableViewProps> = ({
         columnVisibility={{ visibleColumns, setVisibleColumns }}
         rowCount={displayedRows.length}
         renderCellValue={({ rowIndex, columnId }) => {
-          const val = getCellValue({ rowIndex, columnId });
           const isTotalsRow = Boolean(totalsRow) && rowIndex === displayedRows.length - 1;
+
+          // Computed column: apply format + alignment
+          const ccMatch = !isTotalsRow && columnId.match(/^computed_col_(\d+)$/);
+          if (ccMatch) {
+            const ccIdx = parseInt(ccMatch[1], 10);
+            const cc = (visParams.computedColumns ?? []).filter((c) => c.enabled)[ccIdx];
+            const rawVal = displayedRows[rowIndex]?.[columnId];
+            const formatted = cc ? formatComputedColumnValue(rawVal, cc) : String(rawVal ?? '');
+            const align = cc?.alignment ?? 'left';
+            return <span style={{ display: 'block', textAlign: align }}>{formatted}</span>;
+          }
+
+          const val = getCellValue({ rowIndex, columnId });
           if (isTotalsRow) {
             return <strong>{val}</strong>;
           }
