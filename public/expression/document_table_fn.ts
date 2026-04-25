@@ -119,6 +119,7 @@ export const getDocumentTableExpressionFn = (): DocumentTableExpressionFunctionD
       totalHits: get(rawResponse, 'hits.total', 0),
       fieldColumns: enabledCols,
       aggs: null,
+      indexPatternId: dataView.id,
     };
 
     const visData = documentTableResponseHandler(response);

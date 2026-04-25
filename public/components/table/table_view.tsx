@@ -162,7 +162,12 @@ export const TableView: React.FC<TableViewProps> = ({
 
   useEffect(() => {
     let cancelled = false;
-    const uiActions = getUiActions();
+    let uiActions: ReturnType<typeof getUiActions>;
+    try {
+      uiActions = getUiActions();
+    } catch {
+      return;
+    }
 
     (async () => {
       const result: Record<string, any[]> = {};

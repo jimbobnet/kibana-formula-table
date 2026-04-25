@@ -70,12 +70,27 @@ export function documentTableResponseHandler(response: any): VisRenderData {
 
   const enabledCols = (fieldColumns as any[]).filter((fc) => fc.enabled !== false);
 
-  const columns = enabledCols.map((fc, i) => ({
-    id: `col-${i}`,
-    name: fc.label || fc.field.name,
-    meta: { type: 'string', field: fc.field.name },
-    filterable: false,
-  }));
+  const columns = enabledCols.map((fc, i) => {
+    const isSource = fc.field?.name === '_source';
+    return {
+      id: `col-${i}`,
+      name: fc.label || fc.field.name,
+      meta: {
+        type: 'string',
+        field: fc.field.name,
+        index: response.indexPatternId,
+        source: 'esaggs',
+        sourceParams: {
+          indexPatternId: response.indexPatternId,
+          schema: 'bucket',
+          type: 'terms',
+          params: { field: fc.field.name },
+          enabled: true,
+        },
+      },
+      filterable: !isSource,
+    };
+  });
 
   const rows = (hits as any[]).map((hit) => {
     const row: Record<string, unknown> = {};
