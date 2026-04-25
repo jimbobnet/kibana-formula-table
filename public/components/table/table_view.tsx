@@ -1,17 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   EuiDataGrid,
   EuiDataGridColumn,
   EuiDataGridSorting,
   EuiDataGridControlColumn,
+  EuiDataGridColumnCellAction,
+  EuiDataGridColumnCellActionProps,
   EuiButtonIcon,
   EuiFieldSearch,
   EuiText,
   EuiSpacer,
 } from '@elastic/eui';
+import { CELL_VALUE_TRIGGER } from '@kbn/ui-actions-plugin/common/trigger_ids';
 import { computeColumnsForTable } from './computed_column_engine';
 import { computeColumnTotal } from './column_totals';
 import { formatComputedColumnValue } from './format_computed_value';
+import { getUiActions } from '../../services';
 import type { VisTable, EnhancedTableParams, DocumentTableParams, VisTableRow } from '../../../common/types';
 
 type TableParams = EnhancedTableParams | DocumentTableParams;
@@ -48,7 +52,7 @@ export const TableView: React.FC<TableViewProps> = ({
   const computedColumns = visParams.computedColumns ?? [];
   const perPage = visParams.perPage ?? DEFAULT_PAGE_SIZE;
 
-  // Build columns + rows: apply formula computation, row number column, and hidden column filtering.
+  // Build columns + rows: formula computation, row number column, hidden column filtering.
   const { columns: allColumns, rows: allRows } = useMemo(() => {
     const result = computeColumnsForTable(rawTable.columns, rawTable.rows, computedColumns, totalHits);
     let cols = result.columns;
@@ -129,6 +133,13 @@ export const TableView: React.FC<TableViewProps> = ({
     return sortedRows.slice(start, start + pageSize);
   }, [sortedRows, pageIndex, pageSize]);
 
+  // Ref so cell action closures always see the latest paginatedRows without
+  // forcing gridColumns to rebuild on every page change.
+  const paginatedRowsRef = useRef(paginatedRows);
+  useEffect(() => {
+    paginatedRowsRef.current = paginatedRows;
+  }, [paginatedRows]);
+
   // Totals are always computed from allRows (not filtered), following legacy behavior.
   // The first column shows totalLabel if provided; remaining columns show computed totals.
   const totalsRow = useMemo(() => {
@@ -145,63 +156,122 @@ export const TableView: React.FC<TableViewProps> = ({
     return row;
   }, [visParams.showTotal, visParams.totalFunc, visParams.totalLabel, allColumns, allRows]);
 
-  const gridColumns: EuiDataGridColumn[] = useMemo(
-    () =>
-      allColumns.map((col) => ({
+  // Precompute CELL_VALUE_TRIGGER-compatible actions for each column (async, from uiActions registry).
+  // Keyed by column ID; empty array for columns with no compatible actions.
+  const [columnCompatibleActions, setColumnCompatibleActions] = useState<Record<string, any[]>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const uiActions = getUiActions();
+
+    (async () => {
+      const result: Record<string, any[]> = {};
+      await Promise.all(
+        allColumns.map(async (col) => {
+          if (!col.meta) return;
+          try {
+            const actions = await uiActions.getTriggerCompatibleActions(CELL_VALUE_TRIGGER, {
+              data: [{ columnMeta: col.meta }],
+            });
+            result[col.id] = actions ?? [];
+          } catch {
+            result[col.id] = [];
+          }
+        })
+      );
+      if (!cancelled) setColumnCompatibleActions(result);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [allColumns]);
+
+  // Build EuiDataGrid column definitions including cellActions for filter and CELL_VALUE_TRIGGER.
+  const gridColumns: EuiDataGridColumn[] = useMemo(() => {
+    return allColumns.map((col, colIndex) => {
+      const cellActions: EuiDataGridColumnCellAction[] = [];
+
+      if (col.filterable) {
+        const buildFilterEvent = (rowIndex: number, negate: boolean) => {
+          const rows = paginatedRowsRef.current;
+          const row = rows[rowIndex];
+          if (!row) return;
+          const flatTable = {
+            type: 'datatable' as const,
+            columns: allColumns.map((c) => ({ id: c.id, name: c.name, meta: c.meta ?? { type: 'string' } })),
+            rows: rows.map((r) => ({ ...r })),
+          };
+          fireEvent({
+            name: 'filter',
+            data: { negate, data: [{ row: rowIndex, column: colIndex, value: row[col.id], table: flatTable }] },
+          });
+        };
+
+        cellActions.push(({ rowIndex, Component }: EuiDataGridColumnCellActionProps) => {
+          const row = paginatedRowsRef.current[rowIndex];
+          if (!row || row[col.id] == null) return null;
+          return (
+            <Component
+              iconType="plusCircle"
+              aria-label={`Filter for: ${row[col.id]}`}
+              onClick={() => buildFilterEvent(rowIndex, false)}
+            >
+              Filter for value
+            </Component>
+          );
+        });
+
+        cellActions.push(({ rowIndex, Component }: EuiDataGridColumnCellActionProps) => {
+          const row = paginatedRowsRef.current[rowIndex];
+          if (!row || row[col.id] == null) return null;
+          return (
+            <Component
+              iconType="minusCircle"
+              aria-label={`Filter out: ${row[col.id]}`}
+              onClick={() => buildFilterEvent(rowIndex, true)}
+            >
+              Filter out value
+            </Component>
+          );
+        });
+      }
+
+      // CELL_VALUE_TRIGGER actions from the uiActions registry (e.g. drilldowns, alerts).
+      const compatibleActions = columnCompatibleActions[col.id] ?? [];
+      compatibleActions.forEach((action: any) => {
+        const context = { data: [{ columnMeta: col.meta }] };
+        cellActions.push(({ rowIndex, Component }: EuiDataGridColumnCellActionProps) => {
+          const row = paginatedRowsRef.current[rowIndex];
+          if (!row || row[col.id] == null) return null;
+          const cellContext = { data: [{ value: row[col.id], columnMeta: col.meta }] };
+          return (
+            <Component
+              iconType={action.getIconType?.(context)}
+              aria-label={action.getDisplayName?.(context) ?? action.id}
+              onClick={() => action.execute(cellContext)}
+            >
+              {action.getDisplayName?.(context) ?? action.id}
+            </Component>
+          );
+        });
+      });
+
+      return {
         id: col.id,
         displayAsText: col.name,
         isSortable: col.id !== ROW_NUM_COL_ID,
         isExpandable: false,
         isResizable: true,
-      })),
-    [allColumns]
-  );
+        ...(cellActions.length > 0 ? { cellActions } : {}),
+      };
+    });
+  }, [allColumns, columnCompatibleActions, fireEvent]);
 
   const displayedRows = useMemo(() => {
     if (!totalsRow) return paginatedRows;
     return [...paginatedRows, totalsRow as VisTableRow];
   }, [paginatedRows, totalsRow]);
-
-  const getCellValue = useCallback(
-    ({ rowIndex, columnId }: { rowIndex: number; columnId: string }) => {
-      const row = displayedRows[rowIndex];
-      if (!row) return null;
-      const val = row[columnId];
-      return val != null ? String(val) : null;
-    },
-    [displayedRows]
-  );
-
-  // Filter event — use paginatedRows so rowIndex is consistent with the table rows passed.
-  const handleCellClick = useCallback(
-    (columnId: string, rowIndex: number) => {
-      const col = allColumns.find((c) => c.id === columnId);
-      if (!col?.filterable) return;
-
-      const row = paginatedRows[rowIndex];
-      if (!row) return;
-
-      const colIndex = allColumns.findIndex((c) => c.id === columnId);
-      const flatTable = {
-        type: 'datatable' as const,
-        columns: allColumns.map((c) => ({
-          id: c.id,
-          name: c.name,
-          meta: c.meta ?? { type: 'string' },
-        })),
-        rows: paginatedRows.map((r) => ({ ...r })),
-      };
-
-      fireEvent({
-        name: 'filter',
-        data: {
-          negate: false,
-          data: [{ row: rowIndex, column: colIndex, value: row[columnId], table: flatTable }],
-        },
-      });
-    },
-    [allColumns, paginatedRows, fireEvent]
-  );
 
   const trailingControlColumns: EuiDataGridControlColumn[] = useMemo(() => {
     if (!hasRowClickActions) return [];
@@ -279,7 +349,7 @@ export const TableView: React.FC<TableViewProps> = ({
         renderCellValue={({ rowIndex, columnId }) => {
           const isTotalsRow = Boolean(totalsRow) && rowIndex === displayedRows.length - 1;
 
-          // Computed column: apply format + alignment
+          // Computed column: apply format + alignment.
           const ccMatch = !isTotalsRow && columnId.match(/^computed_col_(\d+)$/);
           if (ccMatch) {
             const ccIdx = parseInt(ccMatch[1], 10);
@@ -290,21 +360,11 @@ export const TableView: React.FC<TableViewProps> = ({
             return <span style={{ display: 'block', textAlign: align }}>{formatted}</span>;
           }
 
-          const val = getCellValue({ rowIndex, columnId });
+          const row = displayedRows[rowIndex];
+          const val = row ? (row[columnId] != null ? String(row[columnId]) : null) : null;
+
           if (isTotalsRow) {
             return <strong>{val}</strong>;
-          }
-          const col = allColumns.find((c) => c.id === columnId);
-          if (col?.filterable) {
-            return (
-              <span
-                style={{ cursor: 'pointer', color: 'var(--euiColorPrimary, #006bb4)' }}
-                title="Filter for value"
-                onClick={() => handleCellClick(columnId, rowIndex)}
-              >
-                {val}
-              </span>
-            );
           }
           return <>{val}</>;
         }}
@@ -320,7 +380,6 @@ export const TableView: React.FC<TableViewProps> = ({
         }}
         sorting={{ columns: sortColumns, onSort: setSortColumns }}
         trailingControlColumns={trailingControlColumns}
-        // Striped rows via EuiDataGrid's built-in gridStyle.stripes
         gridStyle={{ stripes: visParams.stripedRows }}
         toolbarVisibility={{
           showColumnSelector: true,

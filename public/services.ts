@@ -4,6 +4,7 @@ import type { NotificationsStart, ThemeServiceStart } from '@kbn/core/public';
 import type { DataViewsPublicPluginStart } from '@kbn/data-views-plugin/public';
 import type { DataPublicPluginStart } from '@kbn/data-plugin/public';
 import type { VisualizationsStart } from '@kbn/visualizations-plugin/public';
+import type { UiActionsStart } from '@kbn/ui-actions-plugin/public';
 
 export const [getFormatService, setFormatService] =
   createGetterSetter<FieldFormatsStart>('FieldFormats');
@@ -22,3 +23,6 @@ export const [getVisualization, setVisualization] =
 
 export const [getThemeService, setThemeService] =
   createGetterSetter<ThemeServiceStart>('ThemeServiceStart');
+
+export const [getUiActions, setUiActions] =
+  createGetterSetter<UiActionsStart>('UiActions');

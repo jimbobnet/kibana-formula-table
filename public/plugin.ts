@@ -7,6 +7,7 @@ import {
   setDataViewsStart,
   setVisualization,
   setThemeService,
+  setUiActions,
 } from './services';
 import { getEnhancedTableExpressionFn } from './expression/enhanced_table_fn';
 import { getDocumentTableExpressionFn } from './expression/document_table_fn';
@@ -41,6 +42,7 @@ export class EnhancedTable2Plugin
     setDataViewsStart(deps.dataViews);
     setVisualization(deps.visualizations);
     setThemeService(core.theme);
+    setUiActions(deps.uiActions);
 
     return {};
   }
