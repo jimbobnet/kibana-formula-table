@@ -1,0 +1,26 @@
+{
+  "id": "enhancedTable2",
+  "version": "1.0.0",
+  "kibanaVersion": "kibana",
+  "owner": {
+    "name": "james.atack@onyphe.io",
+    "githubTeam": ""
+  },
+  "description": "React + Embeddable table visualizations with ROW_CLICK_TRIGGER support",
+  "server": false,
+  "ui": true,
+  "requiredPlugins": [
+    "data",
+    "dataViews",
+    "expressions",
+    "visualizations",
+    "visDefaultEditor",
+    "fieldFormats",
+    "uiActions",
+    "embeddable",
+    "inspector",
+    "kibanaUtils",
+    "kibanaReact"
+  ],
+  "optionalPlugins": ["share", "usageCollection"]
+}

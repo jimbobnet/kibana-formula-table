@@ -1,0 +1,15 @@
+{
+  "name": "enhancedTable2",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "expr-eval": "2.0.2"
+  },
+  "scripts": {
+    "bootstrap": "yarn kbn bootstrap && yarn install",
+    "build": "yarn plugin-helpers build",
+    "dev": "yarn plugin-helpers dev",
+    "plugin-helpers": "node ../../scripts/plugin_helpers",
+    "kbn": "node ../../scripts/kbn"
+  }
+}

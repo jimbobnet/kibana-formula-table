@@ -1,0 +1,15 @@
+import type { EnhancedTableParams } from '../../../common/types';
+
+export const ENHANCED_TABLE_DEFAULT_PARAMS: EnhancedTableParams = {
+  perPage: 10,
+  sort: { columnIndex: null, direction: null },
+  showTotal: false,
+  totalFunc: 'sum',
+  computedColumns: [],
+  showPartialRows: false,
+  showMetricsAtAllLevels: false,
+  computedColsPerSplitCol: false,
+  stripedRows: false,
+  addRowNumberColumn: false,
+  hideExportLinks: false,
+};

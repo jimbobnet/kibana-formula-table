@@ -1,0 +1,7 @@
+{
+  "prefix": "enhancedTable2",
+  "paths": {
+    "enhancedTable2": "."
+  },
+  "translations": ["translations/ja-JP.json"]
+}
