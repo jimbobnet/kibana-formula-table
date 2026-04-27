@@ -1,8 +1,34 @@
-import type { VisTable, VisRenderData } from '../../common/types';
+import type { VisTable, VisRenderData, VisTableColumn, VisTableRow, AggConfigLike, FieldColumn } from '../../common/types';
+
+interface AggResponseColumn {
+  id: string;
+  name: string;
+  aggConfig?: AggConfigLike;
+  meta?: VisTableColumn['meta'];
+}
+
+interface AggResponse {
+  columns: AggResponseColumn[];
+  rows: VisTableRow[];
+  totalHits?: number;
+}
+
+interface HitRecord {
+  _source?: Record<string, unknown>;
+  fields?: Record<string, unknown[]>;
+  [key: string]: unknown;
+}
+
+interface DocumentResponse {
+  fieldColumns: FieldColumn[];
+  hits: HitRecord[];
+  totalHits?: number;
+  indexPatternId?: string;
+}
 
 function splitTableByColumn(
-  columns: any[],
-  rows: any[],
+  columns: AggResponseColumn[],
+  rows: VisTableRow[],
   title?: string
 ): VisTable[] {
   const splitColumn = columns.find(
@@ -28,7 +54,7 @@ function splitTableByColumn(
   const splitColumnIndex = columns.findIndex((col) => col.id === splitColumn.id);
   const filteredColumns = columns.filter((_, i) => i !== splitColumnIndex);
 
-  const groups: Record<string, any[]> = {};
+  const groups: Record<string, VisTableRow[]> = {};
   const groupOrder: unknown[] = [];
 
   rows.forEach((row) => {
@@ -38,7 +64,7 @@ function splitTableByColumn(
       groups[key] = [];
       groupOrder.push(splitValue);
     }
-    const newRow: Record<string, unknown> = {};
+    const newRow: VisTableRow = {};
     filteredColumns.forEach((col) => {
       newRow[col.id] = row[col.id];
     });
@@ -56,19 +82,19 @@ function splitTableByColumn(
   return tables;
 }
 
-export function enhancedTableResponseHandler(response: any): VisRenderData {
+export function enhancedTableResponseHandler(response: AggResponse): VisRenderData {
   const tables = splitTableByColumn(response.columns, response.rows);
   return { tables, totalHits: response.totalHits ?? 0 };
 }
 
-export function documentTableResponseHandler(response: any): VisRenderData {
+export function documentTableResponseHandler(response: DocumentResponse): VisRenderData {
   const { fieldColumns, hits, totalHits } = response;
 
   if (!fieldColumns || !hits) {
     return { tables: [], totalHits: totalHits ?? 0 };
   }
 
-  const enabledCols = (fieldColumns as any[]).filter((fc) => fc.enabled !== false);
+  const enabledCols = fieldColumns.filter((fc) => fc.enabled !== false);
 
   const columns = enabledCols.map((fc, i) => {
     const isSource = fc.field?.name === '_source';
@@ -92,8 +118,8 @@ export function documentTableResponseHandler(response: any): VisRenderData {
     };
   });
 
-  const rows = (hits as any[]).map((hit) => {
-    const row: Record<string, unknown> = {};
+  const rows = hits.map((hit) => {
+    const row: VisTableRow = {};
     enabledCols.forEach((fc, i) => {
       const fieldName = fc.field.name;
       if (fieldName === '_source') {
@@ -101,7 +127,7 @@ export function documentTableResponseHandler(response: any): VisRenderData {
       } else if (fieldName.startsWith('_')) {
         row[`col-${i}`] = hit[fieldName] ?? null;
       } else {
-        let value =
+        let value: unknown =
           hit._source?.[fieldName] ??
           hit.fields?.[fieldName] ??
           null;

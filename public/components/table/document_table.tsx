@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { TableView } from './table_view';
-import type { VisRenderData, DocumentTableParams } from '../../../common/types';
+import type { VisRenderData, DocumentTableParams, TableEvent } from '../../../common/types';
 
 interface DocumentTableProps {
   visData: VisRenderData;
   visParams: DocumentTableParams;
-  fireEvent: (event: any) => void;
-  hasCompatibleActions?: (event: any) => Promise<boolean>;
+  fireEvent: (event: TableEvent) => void;
+  hasCompatibleActions?: (event: TableEvent) => Promise<boolean>;
 }
 
 export const DocumentTable: React.FC<DocumentTableProps> = ({

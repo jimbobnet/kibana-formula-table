@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
   EuiDataGrid,
   EuiDataGridColumn,
@@ -18,6 +18,7 @@ import {
 } from '@elastic/eui';
 import { CELL_VALUE_TRIGGER } from '@kbn/ui-actions-plugin/common/trigger_ids';
 import { computeColumnsForTable, parseFormula, evaluateRowExpression } from './computed_column_engine';
+import type { ParsedExpression } from './computed_column_engine';
 import { computeColumnTotal } from './column_totals';
 import { formatComputedColumnValue } from './format_computed_value';
 import { compileTemplate, renderTemplate, buildTemplateContext } from './handlebars_template';
@@ -25,7 +26,7 @@ import { SafeHtmlCell, CssStyledCell } from './safe_html_cell';
 import { buildCsvContent, downloadCsv } from './csv_export';
 import type { TemplateDelegate } from '@kbn/handlebars';
 import { getUiActions } from '../../services';
-import type { VisTable, EnhancedTableParams, DocumentTableParams } from '../../../common/types';
+import type { VisTable, EnhancedTableParams, DocumentTableParams, TableEvent } from '../../../common/types';
 
 type TableParams = EnhancedTableParams | DocumentTableParams;
 
@@ -64,7 +65,7 @@ interface TableViewProps {
   table: VisTable;
   visParams: TableParams;
   totalHits: number;
-  fireEvent: (event: any) => void;
+  fireEvent: (event: TableEvent) => void;
   hasRowClickActions: boolean;
 }
 
@@ -129,6 +130,7 @@ export const TableView: React.FC<TableViewProps> = ({
   const [pageSize, setPageSize] = useState(perPage);
   const [sortColumns, setSortColumns] = useState<EuiDataGridSorting['columns']>([]);
   const [filterText, setFilterText] = useState('');
+  const deferredFilterText = useDeferredValue(filterText);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() =>
     displayedColumns.map((col) => col.id)
   );
@@ -155,7 +157,7 @@ export const TableView: React.FC<TableViewProps> = ({
   );
 
   const compiledCellCssMap = useMemo(() => {
-    const map = new Map<number, any>();
+    const map = new Map<number, ParsedExpression>();
     enabledComputedCols.forEach((cc, idx) => {
       if (cc.cellComputedCss) {
         const expr = parseFormula(cc.cellComputedCss);
@@ -166,13 +168,13 @@ export const TableView: React.FC<TableViewProps> = ({
   }, [enabledComputedCols]);
 
   const highlightTerms = useMemo(() => {
-    if (!filterText || !(visParams.filterHighlightResults ?? false) || !visParams.showFilterBar) return [];
+    if (!deferredFilterText || !(visParams.filterHighlightResults ?? false) || !visParams.showFilterBar) return [];
     const caseSensitive = visParams.filterCaseSensitive ?? false;
-    const text = caseSensitive ? filterText : filterText.toLowerCase();
+    const text = caseSensitive ? deferredFilterText : deferredFilterText.toLowerCase();
     return (visParams.filterTermsSeparately ?? false)
       ? text.split(/\s+/).filter(Boolean)
       : [text];
-  }, [filterText, visParams.filterHighlightResults, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
+  }, [deferredFilterText, visParams.filterHighlightResults, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
 
   // Row formula filter: applied after computed columns, before text filter bar.
   // Totals are still computed from allRows (unfiltered).
@@ -183,12 +185,13 @@ export const TableView: React.FC<TableViewProps> = ({
     );
   }, [allRows, compiledRowFilter, allColumns, totalHits]);
 
-  // Filter bar: filter formulaFilteredRows by filterText before sorting and pagination.
+  // Filter bar: uses deferredFilterText so the expensive scan is scheduled at lower priority,
+  // keeping the input responsive even on large datasets.
   const filteredRows = useMemo(() => {
-    if (!filterText || !visParams.showFilterBar) return formulaFilteredRows;
+    if (!deferredFilterText || !visParams.showFilterBar) return formulaFilteredRows;
     const caseSensitive = visParams.filterCaseSensitive ?? false;
     const termsSeparately = visParams.filterTermsSeparately ?? false;
-    const text = caseSensitive ? filterText : filterText.toLowerCase();
+    const text = caseSensitive ? deferredFilterText : deferredFilterText.toLowerCase();
     const terms = termsSeparately ? text.split(/\s+/).filter(Boolean) : [text];
     return formulaFilteredRows.filter((row) => {
       const cellValues = Object.values(row)
@@ -196,12 +199,12 @@ export const TableView: React.FC<TableViewProps> = ({
         .map((s) => (caseSensitive ? s : s.toLowerCase()));
       return terms.every((term) => cellValues.some((v) => v.includes(term)));
     });
-  }, [formulaFilteredRows, filterText, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
+  }, [formulaFilteredRows, deferredFilterText, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
 
-  // Reset to first page when filter changes or dataset shrinks past current page.
+  // Reset to first page when the deferred filter settles on a new value.
   useEffect(() => {
     setPageIndex(0);
-  }, [filterText]);
+  }, [deferredFilterText]);
 
   useEffect(() => {
     if (pageIndex > 0 && pageIndex * pageSize >= filteredRows.length) {
@@ -474,7 +477,7 @@ export const TableView: React.FC<TableViewProps> = ({
   const handleExport = (rows: typeof sortedRows, includeTotals: boolean) => {
     const title = rawTable.title || 'export';
     if (visParams.csvFullExport) {
-      const rawCols = rawTable.columns.map((c: any) => ({ id: c.id, name: c.name, meta: c.meta, filterable: false }));
+      const rawCols = rawTable.columns.map((c) => ({ id: c.id, name: c.name, meta: c.meta, filterable: false as const }));
       const content = buildCsvContent(rawTable.rows as typeof sortedRows, rawCols, [], null, false);
       downloadCsv(content, `${title}.csv`);
     } else {

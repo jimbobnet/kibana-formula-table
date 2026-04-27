@@ -2,6 +2,8 @@ import { Parser } from 'expr-eval';
 import { FORMULA_FUNCTIONS } from './formula_functions';
 import type { ComputedColumn, VisTableColumn, VisTableRow } from '../../../common/types';
 
+export type ParsedExpression = ReturnType<Parser['parse']>;
+
 const buildParser = (): Parser => {
   const parser = new Parser({
     operators: {
@@ -62,7 +64,7 @@ export function computeColumnsForTable(
   enabledCols.forEach((cc, ccIdx) => {
     const colId = `computed_col_${ccIdx}`;
 
-    let expr: any;
+    let expr: ParsedExpression;
     try {
       expr = parser.parse(cc.formula);
     } catch {
@@ -140,12 +142,12 @@ export function computeColumnsForTable(
   return { columns: newColumns, rows: newRows };
 }
 
-export function parseFormula(formula: string): any | null {
+export function parseFormula(formula: string): ParsedExpression | null {
   try { return getParser().parse(formula); } catch { return null; }
 }
 
 export function evaluateRowExpression(
-  expr: any,
+  expr: ParsedExpression,
   row: VisTableRow,
   columns: VisTableColumn[],
   rows: VisTableRow[],

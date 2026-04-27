@@ -89,17 +89,29 @@ export interface DocumentTableParams {
   sortOrder: 'asc' | 'desc';
 }
 
+/** Minimal structural type covering the only aggConfig usage: isFilterable(). */
+export interface AggConfigLike {
+  isFilterable?: () => boolean;
+}
+
 export interface VisTableColumn {
   id: string;
   name: string;
-  aggConfig?: any;
+  aggConfig?: AggConfigLike;
   meta?: {
     type?: string;
     field?: string;
     index?: string;
     source?: string;
     params?: unknown;
-    sourceParams?: any;
+    sourceParams?: {
+      schema?: string;
+      indexPatternId?: string;
+      type?: string;
+      params?: unknown;
+      enabled?: boolean;
+      [key: string]: unknown;
+    };
   };
   filterable?: boolean;
 }
@@ -116,3 +128,19 @@ export interface VisRenderData {
   tables: VisTable[];
   totalHits: number;
 }
+
+/** Discriminated union of events fired by the table component. */
+export interface TableFilterEvent {
+  name: 'filter';
+  data: {
+    negate: boolean;
+    data: Array<{ row: number; column: number; value: unknown; table: unknown }>;
+  };
+}
+
+export interface TableRowClickEvent {
+  name: 'tableRowContextMenuClick';
+  data: { rowIndex: number; table: unknown; columns: string[] };
+}
+
+export type TableEvent = TableFilterEvent | TableRowClickEvent;

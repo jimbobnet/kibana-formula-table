@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { EuiSpacer } from '@elastic/eui';
 import { TableView } from './table_view';
-import type { VisRenderData, EnhancedTableParams } from '../../../common/types';
+import type { VisRenderData, EnhancedTableParams, TableEvent } from '../../../common/types';
 
 interface EnhancedTableProps {
   visData: VisRenderData;
   visParams: EnhancedTableParams;
-  fireEvent: (event: any) => void;
-  hasCompatibleActions?: (event: any) => Promise<boolean>;
+  fireEvent: (event: TableEvent) => void;
+  hasCompatibleActions?: (event: TableEvent) => Promise<boolean>;
 }
 
 export const EnhancedTable: React.FC<EnhancedTableProps> = ({
