@@ -35,6 +35,31 @@ const hashStr = (s: string): string => {
   return (h >>> 0).toString(36);
 };
 
+const highlightText = (
+  text: string,
+  terms: string[],
+  caseSensitive: boolean
+): React.ReactNode => {
+  if (!terms.length || !text) return text;
+  const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`(${escaped.join('|')})`, caseSensitive ? 'g' : 'gi');
+  const parts = text.split(regex);
+  if (parts.length <= 1) return text;
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? (
+          <mark key={i} style={{ backgroundColor: 'var(--euiColorHighlight, #FFF2CC)', padding: 0 }}>
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+};
+
 interface TableViewProps {
   table: VisTable;
   visParams: TableParams;
@@ -134,6 +159,15 @@ export const TableView: React.FC<TableViewProps> = ({
     });
     return map;
   }, [visParams.computedColumns]);
+
+  const highlightTerms = useMemo(() => {
+    if (!filterText || !(visParams.filterHighlightResults ?? false) || !visParams.showFilterBar) return [];
+    const caseSensitive = visParams.filterCaseSensitive ?? false;
+    const text = caseSensitive ? filterText : filterText.toLowerCase();
+    return (visParams.filterTermsSeparately ?? false)
+      ? text.split(/\s+/).filter(Boolean)
+      : [text];
+  }, [filterText, visParams.filterHighlightResults, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
 
   // Row formula filter: applied after computed columns, before text filter bar.
   // Totals are still computed from allRows (unfiltered).
@@ -542,6 +576,9 @@ export const TableView: React.FC<TableViewProps> = ({
           if (ccResult !== null) return ccResult;
 
           const val = row ? (row[columnId] != null ? String(row[columnId]) : null) : null;
+          if (val && highlightTerms.length) {
+            return <>{highlightText(val, highlightTerms, visParams.filterCaseSensitive ?? false)}</>;
+          }
           return <>{val}</>;
         }}
         renderFooterCellValue={

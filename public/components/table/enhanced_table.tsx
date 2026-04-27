@@ -43,9 +43,13 @@ export const EnhancedTable: React.FC<EnhancedTableProps> = ({
 
   if (!visData.tables.length) return null;
 
+  const tables = visParams.sortSplitCols
+    ? [...visData.tables].sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+    : visData.tables;
+
   return (
     <>
-      {visData.tables.map((table, idx) => (
+      {tables.map((table, idx) => (
         <React.Fragment key={idx}>
           {idx > 0 && <EuiSpacer size="m" />}
           <TableView

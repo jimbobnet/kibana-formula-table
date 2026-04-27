@@ -122,6 +122,14 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
         />
         <EuiSpacer size="s" />
 
+        <EuiSwitch
+          compressed
+          label={i18n.translate('enhancedTable2.options.sortSplitCols', { defaultMessage: 'Sort split tables' })}
+          checked={(stateParams as any).sortSplitCols ?? false}
+          onChange={(e) => setValue('sortSplitCols' as any, e.target.checked)}
+        />
+        <EuiSpacer size="s" />
+
         <EuiFormRow
           label={i18n.translate('enhancedTable2.options.hiddenColumns', { defaultMessage: 'Hidden columns' })}
           helpText={i18n.translate('enhancedTable2.options.hiddenColumnsHelp', { defaultMessage: 'Comma-separated column indices to hide (e.g. 0,2)' })}
@@ -230,6 +238,13 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
               label={i18n.translate('enhancedTable2.options.filterBarHideable', { defaultMessage: 'Filter bar hideable' })}
               checked={stateParams.filterBarHideable ?? false}
               onChange={(e) => setValue('filterBarHideable', e.target.checked)}
+            />
+            <EuiSpacer size="s" />
+            <EuiSwitch
+              compressed
+              label={i18n.translate('enhancedTable2.options.filterHighlightResults', { defaultMessage: 'Highlight matching text' })}
+              checked={stateParams.filterHighlightResults ?? false}
+              onChange={(e) => setValue('filterHighlightResults', e.target.checked)}
             />
           </>
         )}

@@ -56,6 +56,7 @@ export interface EnhancedTableParams {
   filterBarWidth?: string;
   rowComputedFilter?: string;
   rowComputedCss?: string;
+  sortSplitCols?: boolean;
 }
 
 export interface DocumentTableParams {
