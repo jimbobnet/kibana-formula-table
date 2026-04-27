@@ -39,6 +39,11 @@ export function computeColumnsForTable(
   const parser = getParser();
   const enabledCols = computedColumns.filter((cc) => cc.enabled);
 
+  // Totals are intentionally computed from existingColumns only, before computed columns are
+  // evaluated. A computed column's total cannot be known until all row values exist, so
+  // total<N> for a computed-column index is always 0 during formula evaluation. The displayed
+  // totals footer in the UI is correct because it is computed separately (via computeColumnTotal)
+  // after this function returns, at which point newRows already contains computed values.
   const totals = existingColumns.map((col) => {
     const vals = rows.map((r) => {
       const v = r[col.id];
@@ -118,7 +123,9 @@ export function computeColumnsForTable(
 
         vars[`col${colIdx}`] = numOrNull;
         vars[`formattedCol${colIdx}`] = rawVal != null ? String(rawVal) : '';
-        vars[col.name] = numOrNull;
+        // Prefix with 'colName_' to prevent column names like 'totalHits' or 'value'
+        // from shadowing built-in formula variables.
+        vars[`colName_${col.name}`] = numOrNull;
         vars[`total${colIdx}`] = totals[colIdx];
       });
 
@@ -180,7 +187,8 @@ export function evaluateRowExpression(
     const n = toNum(v);
     vars[`col${i}`] = n;
     vars[`formattedCol${i}`] = v != null ? String(v) : '';
-    vars[col.name] = n;
+    // Prefix with 'colName_' to prevent column names from shadowing built-in variables.
+    vars[`colName_${col.name}`] = n;
   });
 
   try { return expr.evaluate(vars); } catch { return null; }

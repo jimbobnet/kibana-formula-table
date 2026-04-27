@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   EuiDataGrid,
   EuiDataGridColumn,
@@ -149,16 +149,21 @@ export const TableView: React.FC<TableViewProps> = ({
     [visParams.rowComputedCss]
   );
 
+  const enabledComputedCols = useMemo(
+    () => (visParams.computedColumns ?? []).filter((c) => c.enabled),
+    [visParams.computedColumns]
+  );
+
   const compiledCellCssMap = useMemo(() => {
     const map = new Map<number, any>();
-    (visParams.computedColumns ?? []).filter((c) => c.enabled).forEach((cc, idx) => {
+    enabledComputedCols.forEach((cc, idx) => {
       if (cc.cellComputedCss) {
         const expr = parseFormula(cc.cellComputedCss);
         if (expr) map.set(idx, expr);
       }
     });
     return map;
-  }, [visParams.computedColumns]);
+  }, [enabledComputedCols]);
 
   const highlightTerms = useMemo(() => {
     if (!filterText || !(visParams.filterHighlightResults ?? false) || !visParams.showFilterBar) return [];
@@ -206,18 +211,26 @@ export const TableView: React.FC<TableViewProps> = ({
 
   const sortedRows = useMemo(() => {
     if (!sortColumns.length) return filteredRows;
+    const colTypeLookup = new Map(displayedColumns.map((c) => [c.id, c.meta?.type]));
     return [...filteredRows].sort((a, b) => {
       for (const { id, direction } of sortColumns) {
         const av = a[id];
         const bv = b[id];
-        const aStr = av == null ? '' : String(av);
-        const bStr = bv == null ? '' : String(bv);
-        const cmp = aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
+        let cmp: number;
+        if (colTypeLookup.get(id) === 'number') {
+          const an = av == null ? -Infinity : Number(av);
+          const bn = bv == null ? -Infinity : Number(bv);
+          cmp = isNaN(an) ? (isNaN(bn) ? 0 : -1) : isNaN(bn) ? 1 : an < bn ? -1 : an > bn ? 1 : 0;
+        } else {
+          const aStr = av == null ? '' : String(av);
+          const bStr = bv == null ? '' : String(bv);
+          cmp = aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
+        }
         if (cmp !== 0) return direction === 'desc' ? -cmp : cmp;
       }
       return 0;
     });
-  }, [filteredRows, sortColumns]);
+  }, [filteredRows, sortColumns, displayedColumns]);
 
   // Ref so cell action closures always see the latest sortedRows without
   // forcing gridColumns to rebuild on every sort/filter change.
@@ -276,13 +289,13 @@ export const TableView: React.FC<TableViewProps> = ({
   // Compile Handlebars templates once per computedColumns change.
   const compiledTemplates = useMemo(() => {
     const map = new Map<number, TemplateDelegate>();
-    (visParams.computedColumns ?? []).filter((c) => c.enabled).forEach((cc, idx) => {
+    enabledComputedCols.forEach((cc, idx) => {
       if (cc.applyTemplate && cc.template) {
         try { map.set(idx, compileTemplate(cc.template)); } catch { /* skip invalid template */ }
       }
     });
     return map;
-  }, [visParams.computedColumns]);
+  }, [enabledComputedCols]);
 
   // Precompute CELL_VALUE_TRIGGER-compatible actions for each column (async, from uiActions registry).
   // Keyed by column ID; empty array for columns with no compatible actions.
@@ -465,7 +478,6 @@ export const TableView: React.FC<TableViewProps> = ({
       const content = buildCsvContent(rawTable.rows as typeof sortedRows, rawCols, [], null, false);
       downloadCsv(content, `${title}.csv`);
     } else {
-      const enabledComputedCols = (visParams.computedColumns ?? []).filter((c) => c.enabled);
       const content = buildCsvContent(rows, displayedColumns, enabledComputedCols, totalsRow, includeTotals);
       downloadCsv(content, `${title}.csv`);
     }
@@ -510,13 +522,12 @@ export const TableView: React.FC<TableViewProps> = ({
   );
 
   // Render a computed column cell value with optional Handlebars template and cell CSS.
-  const renderComputedCell = (
+  const renderComputedCell = useCallback((
     columnId: string,
     rowData: Record<string, unknown>,
     isTotals: boolean,
     rowIndex?: number
   ) => {
-    const enabledComputedCols = (visParams.computedColumns ?? []).filter((c) => c.enabled);
     const ccMatch = columnId.match(/^computed_col_(\d+)$/);
     if (!ccMatch) return null;
     const ccIdx = parseInt(ccMatch[1], 10);
@@ -559,7 +570,7 @@ export const TableView: React.FC<TableViewProps> = ({
     return cellCss
       ? <CssStyledCell cssText={cellCss} style={{ display: 'block' }}>{inner}</CssStyledCell>
       : inner;
-  };
+  }, [enabledComputedCols, compiledCellCssMap, compiledTemplates, allColumns, totalsRow, totalHits]);
 
   return (
     <div style={{ width: '100%', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
