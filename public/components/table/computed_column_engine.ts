@@ -64,12 +64,17 @@ export function computeColumnsForTable(
       return;
     }
 
-    newColumns.push({
+    const colDef = {
       id: colId,
       name: cc.label || `Computed ${ccIdx + 1}`,
       meta: { type: 'number' },
       filterable: false,
-    });
+    };
+    const pos = cc.customColumnPosition;
+    const insertAt = (typeof pos === 'number' && pos >= 0)
+      ? Math.min(pos, newColumns.length)
+      : newColumns.length;
+    newColumns.splice(insertAt, 0, colDef);
 
     // Register cell/formattedCell with closures over newRows and currentRowIdx.
     // These are re-registered per computed column so they see the rows that exist

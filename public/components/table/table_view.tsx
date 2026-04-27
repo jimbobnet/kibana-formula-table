@@ -391,7 +391,7 @@ export const TableView: React.FC<TableViewProps> = ({
         });
       });
 
-      return {
+      const colDef: any = {
         id: col.id,
         displayAsText: col.name,
         isSortable: col.id !== ROW_NUM_COL_ID,
@@ -399,8 +399,23 @@ export const TableView: React.FC<TableViewProps> = ({
         isResizable: true,
         ...(cellActions.length > 0 ? { cellActions } : {}),
       };
+
+      const ccHeaderMatch = col.id.match(/^computed_col_(\d+)$/);
+      if (ccHeaderMatch) {
+        const enabledCCs = (visParams.computedColumns ?? []).filter((c) => c.enabled);
+        const cc = enabledCCs[parseInt(ccHeaderMatch[1], 10)];
+        if (cc && cc.applyAlignmentOnTitle && cc.alignment !== 'left') {
+          colDef.display = (
+            <span style={{ display: 'block', textAlign: cc.alignment as React.CSSProperties['textAlign'] }}>
+              {col.name}
+            </span>
+          );
+        }
+      }
+
+      return colDef;
     });
-  }, [displayedColumns, columnCompatibleActions, fireEvent]);
+  }, [displayedColumns, columnCompatibleActions, fireEvent, visParams.computedColumns]);
 
   const trailingControlColumns: EuiDataGridControlColumn[] = useMemo(() => {
     if (!hasRowClickActions) return [];
@@ -527,7 +542,12 @@ export const TableView: React.FC<TableViewProps> = ({
         : <SafeHtmlCell html={html} style={{ display: 'block', textAlign: align }} />;
     }
 
-    if (isTotals) return <strong>{formatted}</strong>;
+    if (isTotals) {
+      const alignTotal = cc?.applyAlignmentOnTotal && cc?.alignment !== 'left';
+      return alignTotal
+        ? <strong style={{ display: 'block', textAlign: cc!.alignment as React.CSSProperties['textAlign'] }}>{formatted}</strong>
+        : <strong>{formatted}</strong>;
+    }
 
     const inner = <span style={{ display: 'block', textAlign: align }}>{formatted}</span>;
     return cellCss

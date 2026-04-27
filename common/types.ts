@@ -9,7 +9,7 @@ export interface ComputedColumn {
   durationOutputPrecision?: number;
   durationUseShortSuffix?: boolean;
   durationIncludeSpaceWithSuffix?: boolean;
-  alignment: 'left' | 'center' | 'right';
+  alignment: 'left' | 'center' | 'right' | 'justify';
   applyAlignmentOnTitle: boolean;
   applyAlignmentOnTotal: boolean;
   computeTotalUsingFormula: boolean;

@@ -9,6 +9,7 @@ import {
   EuiFlexItem,
   EuiFormRow,
   EuiIcon,
+  EuiIconTip,
   EuiSelect,
   EuiSpacer,
   EuiSwitch,
@@ -223,6 +224,46 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
         )}
 
         <EuiFlexItem>
+          <EuiFormRow
+            label={i18n.translate('enhancedTable2.computedColumn.alignment', { defaultMessage: 'Text alignment' })}
+            display="rowCompressed"
+          >
+            <EuiSelect
+              compressed
+              options={[
+                { value: 'left',    text: i18n.translate('enhancedTable2.computedColumn.alignLeft',    { defaultMessage: 'Left' }) },
+                { value: 'center',  text: i18n.translate('enhancedTable2.computedColumn.alignCenter',  { defaultMessage: 'Center' }) },
+                { value: 'right',   text: i18n.translate('enhancedTable2.computedColumn.alignRight',   { defaultMessage: 'Right' }) },
+                { value: 'justify', text: i18n.translate('enhancedTable2.computedColumn.alignJustify', { defaultMessage: 'Justify' }) },
+              ]}
+              value={column.alignment}
+              onChange={(e) => update({ alignment: e.target.value as ComputedColumn['alignment'] })}
+            />
+          </EuiFormRow>
+        </EuiFlexItem>
+
+        {column.alignment !== 'left' && (
+          <>
+            <EuiFlexItem>
+              <EuiSwitch
+                compressed
+                label={i18n.translate('enhancedTable2.computedColumn.applyAlignmentOnTitle', { defaultMessage: 'Apply alignment on title' })}
+                checked={column.applyAlignmentOnTitle}
+                onChange={(e) => update({ applyAlignmentOnTitle: e.target.checked })}
+              />
+            </EuiFlexItem>
+            <EuiFlexItem>
+              <EuiSwitch
+                compressed
+                label={i18n.translate('enhancedTable2.computedColumn.applyAlignmentOnTotal', { defaultMessage: 'Apply alignment on total' })}
+                checked={column.applyAlignmentOnTotal}
+                onChange={(e) => update({ applyAlignmentOnTotal: e.target.checked })}
+              />
+            </EuiFlexItem>
+          </>
+        )}
+
+        <EuiFlexItem>
           <EuiSpacer size="xs" />
           <EuiSwitch
             compressed
@@ -271,6 +312,35 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
               placeholder='value < 0 ? "color: red; font-weight: bold" : ""'
               value={column.cellComputedCss ?? ''}
               onChange={(e) => update({ cellComputedCss: e.target.value })}
+            />
+          </EuiFormRow>
+        </EuiFlexItem>
+
+        <EuiFlexItem>
+          <EuiFormRow
+            label={
+              <>
+                {i18n.translate('enhancedTable2.computedColumn.customColumnPosition', { defaultMessage: 'Custom column position' })}
+                {' '}
+                <EuiIconTip
+                  content={i18n.translate('enhancedTable2.computedColumn.customColumnPositionHelp', {
+                    defaultMessage: "You can change here the computed column target position to a previous position. For example, '0' will move this column at first position. Despite 'target' column position, formula can reference any previous column to the 'declared' column position, including classic and computed columns.",
+                  })}
+                  position="right"
+                />
+              </>
+            }
+            display="rowCompressed"
+          >
+            <EuiFieldNumber
+              compressed
+              min={0}
+              placeholder={i18n.translate('enhancedTable2.computedColumn.customColumnPositionPlaceholder', { defaultMessage: '(default)' })}
+              value={column.customColumnPosition ?? ''}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10);
+                update({ customColumnPosition: isNaN(v) ? undefined : v });
+              }}
             />
           </EuiFormRow>
         </EuiFlexItem>
