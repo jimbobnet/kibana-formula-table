@@ -1,6 +1,24 @@
 import moment from 'moment';
 import { computeDurationStructureBrokenDownByTimeUnit } from './time_utils';
 
+// Guard against ReDoS: reject patterns that are too long or contain nested quantifiers
+// such as (a+)+ or (x*)* which cause catastrophic backtracking in the JS regex engine.
+const isSafePattern = (pattern: string): boolean => {
+  if (pattern.length > 200) return false;
+  // Nested quantifier idioms: a quantified group followed by another quantifier
+  if (/\([^)]*[+*][^)]*\)[+*?{]/.test(pattern)) return false;
+  return true;
+};
+
+const safeRegExp = (pattern: string, flags?: string): RegExp | null => {
+  if (!isSafePattern(pattern)) return null;
+  try {
+    return new RegExp(pattern, flags);
+  } catch {
+    return null;
+  }
+};
+
 export const FORMULA_FUNCTIONS: Record<string, (...args: any[]) => any> = {
   now: () => Date.now(),
 
@@ -8,9 +26,14 @@ export const FORMULA_FUNCTIONS: Record<string, (...args: any[]) => any> = {
   lastIndexOf: (str: string, search: string) => String(str).lastIndexOf(search),
   replace: (str: string, search: string, replacement: string) =>
     String(str).replace(search, replacement),
-  replaceRegexp: (str: string, pattern: string, replacement: string) =>
-    String(str).replace(new RegExp(pattern, 'g'), replacement),
-  search: (str: string, pattern: string) => String(str).search(new RegExp(pattern)),
+  replaceRegexp: (str: string, pattern: string, replacement: string) => {
+    const re = safeRegExp(pattern, 'g');
+    return re ? String(str).replace(re, replacement) : String(str);
+  },
+  search: (str: string, pattern: string) => {
+    const re = safeRegExp(pattern);
+    return re ? String(str).search(re) : -1;
+  },
   substring: (str: string, start: number, end?: number) => String(str).substring(start, end),
   toLowerCase: (str: string) => String(str).toLowerCase(),
   toUpperCase: (str: string) => String(str).toUpperCase(),
@@ -18,7 +41,9 @@ export const FORMULA_FUNCTIONS: Record<string, (...args: any[]) => any> = {
   encodeURIComponent: (str: string) => encodeURIComponent(String(str)),
   split: (str: string, separator: string) => String(str).split(separator),
   match: (str: string, pattern: string) => {
-    const m = String(str).match(new RegExp(pattern));
+    const re = safeRegExp(pattern);
+    if (!re) return null;
+    const m = String(str).match(re);
     return m ? m[0] : null;
   },
   sort: (arr: any[]) => (Array.isArray(arr) ? [...arr].sort() : arr),

@@ -1,6 +1,7 @@
 import Handlebars, { compileFnName } from '@kbn/handlebars';
 import type { TemplateDelegate } from '@kbn/handlebars';
 import DOMPurify from 'dompurify';
+import type { SanitizedHtml } from './safe_html_cell';
 
 let hbs: typeof Handlebars | null = null;
 
@@ -15,11 +16,11 @@ const getHbs = () => {
 export const compileTemplate = (templateStr: string): TemplateDelegate =>
   getHbs()[compileFnName](templateStr);
 
-export const renderTemplate = (compiled: TemplateDelegate, context: Record<string, unknown>): string => {
+export const renderTemplate = (compiled: TemplateDelegate, context: Record<string, unknown>): SanitizedHtml => {
   try {
-    return DOMPurify.sanitize(compiled(context));
+    return DOMPurify.sanitize(compiled(context)) as SanitizedHtml;
   } catch {
-    return '';
+    return '' as SanitizedHtml;
   }
 };
 

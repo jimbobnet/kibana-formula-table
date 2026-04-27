@@ -544,8 +544,8 @@ export const TableView: React.FC<TableViewProps> = ({
       const ctx = buildTemplateContext(allColumns, rowData, totalsRow, totalHits, formatted, rawVal);
       const html = renderTemplate(compiled, ctx);
       return isTotals
-        ? <SafeHtmlCell html={html} tag="strong" />
-        : <SafeHtmlCell html={html} style={{ display: 'block', textAlign: align }} />;
+        ? <SafeHtmlCell sanitizedHtml={html} tag="strong" />
+        : <SafeHtmlCell sanitizedHtml={html} style={{ display: 'block', textAlign: align }} />;
     }
 
     if (isTotals) {
