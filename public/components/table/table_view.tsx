@@ -1,4 +1,4 @@
-import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   EuiDataGrid,
   EuiDataGridColumn,
@@ -16,7 +16,7 @@ import {
   EuiText,
   EuiSpacer,
 } from '@elastic/eui';
-import { CELL_VALUE_TRIGGER } from '@kbn/ui-actions-plugin/common/trigger_ids';
+import { CELL_VALUE_TRIGGER } from '@kbn/ui-actions-plugin/public';
 import { computeColumnsForTable, parseFormula, evaluateRowExpression } from './computed_column_engine';
 import type { ParsedExpression } from './computed_column_engine';
 import { computeColumnTotal } from './column_totals';
@@ -130,7 +130,7 @@ export const TableView: React.FC<TableViewProps> = ({
   const [pageSize, setPageSize] = useState(perPage);
   const [sortColumns, setSortColumns] = useState<EuiDataGridSorting['columns']>([]);
   const [filterText, setFilterText] = useState('');
-  const deferredFilterText = useDeferredValue(filterText);
+  const deferredFilterText = filterText;
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() =>
     displayedColumns.map((col) => col.id)
   );
@@ -185,8 +185,6 @@ export const TableView: React.FC<TableViewProps> = ({
     );
   }, [allRows, compiledRowFilter, allColumns, totalHits]);
 
-  // Filter bar: uses deferredFilterText so the expensive scan is scheduled at lower priority,
-  // keeping the input responsive even on large datasets.
   const filteredRows = useMemo(() => {
     if (!deferredFilterText || !visParams.showFilterBar) return formulaFilteredRows;
     const caseSensitive = visParams.filterCaseSensitive ?? false;

@@ -89,9 +89,10 @@ export interface DocumentTableParams {
   sortOrder: 'asc' | 'desc';
 }
 
-/** Minimal structural type covering the only aggConfig usage: isFilterable(). */
+/** Minimal structural type covering aggConfig usage in this plugin. */
 export interface AggConfigLike {
   isFilterable?: () => boolean;
+  schema?: string;
 }
 
 export interface VisTableColumn {

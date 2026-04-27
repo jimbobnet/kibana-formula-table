@@ -32,7 +32,7 @@ function splitTableByColumn(
   title?: string
 ): VisTable[] {
   const splitColumn = columns.find(
-    (col) => col.meta?.sourceParams?.schema === 'split'
+    (col) => col.aggConfig?.schema === 'split'
   );
 
   if (!splitColumn) {
