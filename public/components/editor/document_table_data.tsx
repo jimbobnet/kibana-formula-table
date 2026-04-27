@@ -1,17 +1,21 @@
 import React, { useEffect } from 'react';
+import type { DropResult } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import {
   EuiButtonEmpty,
   EuiButtonIcon,
+  EuiDragDropContext,
+  EuiDraggable,
+  EuiDroppable,
   EuiFieldNumber,
   EuiFieldText,
   EuiFlexGroup,
   EuiFlexItem,
   EuiFormRow,
+  EuiIcon,
   EuiPanel,
   EuiSelect,
   EuiSpacer,
-  EuiSwitch,
   EuiTitle,
 } from '@elastic/eui';
 import type { VisEditorOptionsProps } from '@kbn/visualizations-plugin/public';
@@ -69,6 +73,14 @@ export const DocumentTableData: React.FC<VisEditorOptionsProps<DocumentTablePara
     setValue('fieldColumns', fieldColumns.filter((_, i) => i !== index));
   };
 
+  const onDragEnd = ({ source, destination }: DropResult) => {
+    if (!source || !destination || source.index === destination.index) return;
+    const cols = [...fieldColumns];
+    const [moved] = cols.splice(source.index, 1);
+    cols.splice(destination.index, 0, moved);
+    setValue('fieldColumns', cols);
+  };
+
   return (
     <div>
       {/* FIELD COLUMNS */}
@@ -92,67 +104,95 @@ export const DocumentTableData: React.FC<VisEditorOptionsProps<DocumentTablePara
 
         <EuiSpacer size="s" />
 
-        {fieldColumns.map((col, idx) => (
-          <EuiPanel key={idx} paddingSize="s" hasBorder>
-            <EuiFlexGroup alignItems="flexEnd" gutterSize="s">
-              <EuiFlexItem>
-                <EuiFormRow
-                  label={i18n.translate('enhancedTable2.docTable.field', { defaultMessage: 'Field' })}
-                  display="rowCompressed"
+        <EuiDragDropContext onDragEnd={onDragEnd}>
+          <EuiDroppable droppableId="fieldColumns" spacing="s">
+            <>
+              {fieldColumns.map((col, idx) => (
+                <EuiDraggable
+                  key={`field-col-${idx}`}
+                  index={idx}
+                  draggableId={`field-col-${idx}`}
+                  customDragHandle={true}
+                  spacing="s"
                 >
-                  {fieldOptions.length > 0 ? (
-                    <EuiSelect
-                      compressed
-                      options={fieldOptions}
-                      value={col.field?.name ?? ''}
-                      onChange={(e) =>
-                        updateFieldColumn(idx, { field: { ...col.field, name: e.target.value } })
-                      }
-                    />
-                  ) : (
-                    <EuiFieldText
-                      compressed
-                      placeholder="_source"
-                      value={col.field?.name ?? ''}
-                      onChange={(e) =>
-                        updateFieldColumn(idx, { field: { ...col.field, name: e.target.value } })
-                      }
-                    />
+                  {(provided) => (
+                    <EuiPanel paddingSize="s" hasBorder>
+                      <EuiFlexGroup alignItems="center" gutterSize="s">
+                        <EuiFlexItem grow={false}>
+                          <div
+                            {...provided.dragHandleProps}
+                            aria-label={i18n.translate('enhancedTable2.docTable.dragToReorder', { defaultMessage: 'Drag to reorder' })}
+                          >
+                            <EuiIcon type="grab" />
+                          </div>
+                        </EuiFlexItem>
+                        <EuiFlexItem>
+                          <EuiFormRow
+                            label={i18n.translate('enhancedTable2.docTable.field', { defaultMessage: 'Field' })}
+                            display="rowCompressed"
+                          >
+                            {fieldOptions.length > 0 ? (
+                              <EuiSelect
+                                compressed
+                                options={fieldOptions}
+                                value={col.field?.name ?? ''}
+                                onChange={(e) =>
+                                  updateFieldColumn(idx, { field: { ...col.field, name: e.target.value } })
+                                }
+                              />
+                            ) : (
+                              <EuiFieldText
+                                compressed
+                                placeholder="_source"
+                                value={col.field?.name ?? ''}
+                                onChange={(e) =>
+                                  updateFieldColumn(idx, { field: { ...col.field, name: e.target.value } })
+                                }
+                              />
+                            )}
+                          </EuiFormRow>
+                        </EuiFlexItem>
+                        <EuiFlexItem>
+                          <EuiFormRow
+                            label={i18n.translate('enhancedTable2.docTable.label', { defaultMessage: 'Label' })}
+                            display="rowCompressed"
+                          >
+                            <EuiFieldText
+                              compressed
+                              placeholder={col.field?.name ?? ''}
+                              value={col.label}
+                              onChange={(e) => updateFieldColumn(idx, { label: e.target.value })}
+                            />
+                          </EuiFormRow>
+                        </EuiFlexItem>
+                        <EuiFlexItem grow={false}>
+                          <EuiButtonIcon
+                            iconType={col.enabled !== false ? 'eye' : 'eyeClosed'}
+                            aria-label={
+                              col.enabled !== false
+                                ? i18n.translate('enhancedTable2.docTable.hideColumn', { defaultMessage: 'Hide column' })
+                                : i18n.translate('enhancedTable2.docTable.showColumn', { defaultMessage: 'Show column' })
+                            }
+                            color={col.enabled !== false ? 'text' : 'subdued'}
+                            onClick={() => updateFieldColumn(idx, { enabled: col.enabled === false })}
+                          />
+                        </EuiFlexItem>
+                        <EuiFlexItem grow={false}>
+                          <EuiButtonIcon
+                            iconType="cross"
+                            aria-label={i18n.translate('enhancedTable2.docTable.removeColumn', { defaultMessage: 'Remove field column' })}
+                            color="danger"
+                            onClick={() => removeFieldColumn(idx)}
+                          />
+                        </EuiFlexItem>
+                      </EuiFlexGroup>
+                    </EuiPanel>
                   )}
-                </EuiFormRow>
-              </EuiFlexItem>
-              <EuiFlexItem>
-                <EuiFormRow
-                  label={i18n.translate('enhancedTable2.docTable.label', { defaultMessage: 'Label' })}
-                  display="rowCompressed"
-                >
-                  <EuiFieldText
-                    compressed
-                    placeholder={col.field?.name ?? ''}
-                    value={col.label}
-                    onChange={(e) => updateFieldColumn(idx, { label: e.target.value })}
-                  />
-                </EuiFormRow>
-              </EuiFlexItem>
-              <EuiFlexItem grow={false}>
-                <EuiSwitch
-                  compressed
-                  label={i18n.translate('enhancedTable2.docTable.enabled', { defaultMessage: 'On' })}
-                  checked={col.enabled !== false}
-                  onChange={(e) => updateFieldColumn(idx, { enabled: e.target.checked })}
-                />
-              </EuiFlexItem>
-              <EuiFlexItem grow={false}>
-                <EuiButtonIcon
-                  iconType="trash"
-                  aria-label="Remove field column"
-                  color="danger"
-                  onClick={() => removeFieldColumn(idx)}
-                />
-              </EuiFlexItem>
-            </EuiFlexGroup>
-          </EuiPanel>
-        ))}
+                </EuiDraggable>
+              ))}
+            </>
+          </EuiDroppable>
+        </EuiDragDropContext>
       </EuiPanel>
 
       <EuiSpacer size="m" />

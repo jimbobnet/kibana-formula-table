@@ -8,6 +8,7 @@ import {
   EuiFlexGroup,
   EuiFlexItem,
   EuiFormRow,
+  EuiIcon,
   EuiSelect,
   EuiSpacer,
   EuiSwitch,
@@ -20,6 +21,7 @@ interface ComputedColumnEditorProps {
   index: number;
   onChange: (updated: ComputedColumn) => void;
   onRemove: () => void;
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
 const FORMAT_OPTIONS = [
@@ -58,6 +60,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
   index,
   onChange,
   onRemove,
+  dragHandleProps,
 }) => {
   const update = (patch: Partial<ComputedColumn>) => onChange({ ...column, ...patch });
   const isAsFormat = (column.durationOutputFormat ?? 'humanize').startsWith('as');
@@ -68,7 +71,38 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
       id={`computed_col_${index}`}
       buttonContent={column.label || i18n.translate('enhancedTable2.computedColumn.unnamed', { defaultMessage: 'Computed column {n}', values: { n: index + 1 } })}
       extraAction={
-        <EuiButtonIcon iconType="trash" aria-label="Remove column" color="danger" onClick={onRemove} />
+        <EuiFlexGroup alignItems="center" gutterSize="xs" responsive={false}>
+          {dragHandleProps && (
+            <EuiFlexItem grow={false}>
+              <div
+                {...dragHandleProps}
+                aria-label={i18n.translate('enhancedTable2.computedColumn.dragToReorder', { defaultMessage: 'Drag to reorder' })}
+              >
+                <EuiIcon type="grab" />
+              </div>
+            </EuiFlexItem>
+          )}
+          <EuiFlexItem grow={false}>
+            <EuiButtonIcon
+              iconType={column.enabled ? 'eye' : 'eyeClosed'}
+              aria-label={
+                column.enabled
+                  ? i18n.translate('enhancedTable2.computedColumn.hideColumn', { defaultMessage: 'Hide column' })
+                  : i18n.translate('enhancedTable2.computedColumn.showColumn', { defaultMessage: 'Show column' })
+              }
+              color={column.enabled ? 'text' : 'subdued'}
+              onClick={() => update({ enabled: !column.enabled })}
+            />
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiButtonIcon
+              iconType="cross"
+              aria-label={i18n.translate('enhancedTable2.computedColumn.removeColumn', { defaultMessage: 'Remove column' })}
+              color="danger"
+              onClick={onRemove}
+            />
+          </EuiFlexItem>
+        </EuiFlexGroup>
       }
       paddingSize="s"
     >
@@ -187,15 +221,6 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
             )}
           </>
         )}
-
-        <EuiFlexItem>
-          <EuiSwitch
-            compressed
-            label={i18n.translate('enhancedTable2.computedColumn.enabled', { defaultMessage: 'Enabled' })}
-            checked={column.enabled}
-            onChange={(e) => update({ enabled: e.target.checked })}
-          />
-        </EuiFlexItem>
 
         <EuiFlexItem>
           <EuiSpacer size="xs" />

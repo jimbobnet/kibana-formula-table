@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
+import type { DropResult } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import {
   EuiButtonEmpty,
+  EuiDragDropContext,
+  EuiDraggable,
+  EuiDroppable,
   EuiFieldNumber,
   EuiFieldText,
   EuiFlexGroup,
@@ -64,6 +68,14 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
 
   const removeComputedColumn = (index: number) => {
     const cols = (stateParams.computedColumns ?? []).filter((_, i) => i !== index);
+    setValue('computedColumns', cols);
+  };
+
+  const onComputedColumnDragEnd = ({ source, destination }: DropResult) => {
+    if (!source || !destination || source.index === destination.index) return;
+    const cols = [...(stateParams.computedColumns ?? [])];
+    const [moved] = cols.splice(source.index, 1);
+    cols.splice(destination.index, 0, moved);
     setValue('computedColumns', cols);
   };
 
@@ -309,17 +321,31 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
         </EuiFlexGroup>
 
         <EuiSpacer size="s" />
-        {(stateParams.computedColumns ?? []).map((cc, idx) => (
-          <React.Fragment key={idx}>
-            <ComputedColumnEditorItem
-              column={cc}
-              index={idx}
-              onChange={(updated) => updateComputedColumn(idx, updated)}
-              onRemove={() => removeComputedColumn(idx)}
-            />
-            <EuiSpacer size="xs" />
-          </React.Fragment>
-        ))}
+        <EuiDragDropContext onDragEnd={onComputedColumnDragEnd}>
+          <EuiDroppable droppableId="computedColumns" spacing="s">
+            <>
+              {(stateParams.computedColumns ?? []).map((cc, idx) => (
+                <EuiDraggable
+                  key={`comp-col-${idx}`}
+                  index={idx}
+                  draggableId={`comp-col-${idx}`}
+                  customDragHandle={true}
+                  spacing="s"
+                >
+                  {(provided) => (
+                    <ComputedColumnEditorItem
+                      column={cc}
+                      index={idx}
+                      onChange={(updated) => updateComputedColumn(idx, updated)}
+                      onRemove={() => removeComputedColumn(idx)}
+                      dragHandleProps={provided.dragHandleProps as React.HTMLAttributes<HTMLDivElement>}
+                    />
+                  )}
+                </EuiDraggable>
+              ))}
+            </>
+          </EuiDroppable>
+        </EuiDragDropContext>
       </EuiPanel>
     </div>
   );
