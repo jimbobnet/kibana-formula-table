@@ -44,6 +44,7 @@ const NEW_COMPUTED_COLUMN: ComputedColumn = {
   applyTemplate: false,
   applyTemplateOnTotal: false,
   template: '',
+  cellComputedCss: '',
 };
 
 export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
@@ -232,6 +233,43 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
             />
           </>
         )}
+      </EuiPanel>
+
+      <EuiSpacer size="m" />
+
+      {/* ROW FORMULAS */}
+      <EuiPanel paddingSize="s">
+        <EuiTitle size="xs">
+          <h3>{i18n.translate('enhancedTable2.options.rowFormulas', { defaultMessage: 'Row formulas' })}</h3>
+        </EuiTitle>
+        <EuiSpacer size="s" />
+
+        <EuiFormRow
+          label={i18n.translate('enhancedTable2.options.rowComputedFilter', { defaultMessage: 'Row filter formula' })}
+          helpText={i18n.translate('enhancedTable2.options.rowComputedFilterHelp', { defaultMessage: 'Truthy = show row. Variables: col0…colN, formattedCol0…, totalHits. Example: col0 > 10' })}
+          display="rowCompressed"
+        >
+          <EuiFieldText
+            compressed
+            placeholder="col0 > 10"
+            value={stateParams.rowComputedFilter ?? ''}
+            onChange={(e) => setValue('rowComputedFilter', e.target.value)}
+          />
+        </EuiFormRow>
+        <EuiSpacer size="s" />
+
+        <EuiFormRow
+          label={i18n.translate('enhancedTable2.options.rowComputedCss', { defaultMessage: 'Row CSS formula' })}
+          helpText={i18n.translate('enhancedTable2.options.rowComputedCssHelp', { defaultMessage: 'Returns CSS string applied to the entire row. Example: col0 < 0 ? "background-color: #fdd" : ""' })}
+          display="rowCompressed"
+        >
+          <EuiFieldText
+            compressed
+            placeholder='col0 < 0 ? "background-color: #fdd" : ""'
+            value={stateParams.rowComputedCss ?? ''}
+            onChange={(e) => setValue('rowComputedCss', e.target.value)}
+          />
+        </EuiFormRow>
       </EuiPanel>
 
       <EuiSpacer size="m" />

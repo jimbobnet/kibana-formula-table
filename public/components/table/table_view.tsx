@@ -12,16 +12,22 @@ import {
   EuiSpacer,
 } from '@elastic/eui';
 import { CELL_VALUE_TRIGGER } from '@kbn/ui-actions-plugin/common/trigger_ids';
-import { computeColumnsForTable } from './computed_column_engine';
+import { computeColumnsForTable, parseFormula, evaluateRowExpression } from './computed_column_engine';
 import { computeColumnTotal } from './column_totals';
 import { formatComputedColumnValue } from './format_computed_value';
 import { compileTemplate, renderTemplate, buildTemplateContext } from './handlebars_template';
-import { SafeHtmlCell } from './safe_html_cell';
+import { SafeHtmlCell, CssStyledCell } from './safe_html_cell';
 import type { TemplateDelegate } from '@kbn/handlebars';
 import { getUiActions } from '../../services';
 import type { VisTable, EnhancedTableParams, DocumentTableParams } from '../../../common/types';
 
 type TableParams = EnhancedTableParams | DocumentTableParams;
+
+const hashStr = (s: string): string => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+};
 
 interface TableViewProps {
   table: VisTable;
@@ -55,7 +61,10 @@ export const TableView: React.FC<TableViewProps> = ({
   const computedColumns = visParams.computedColumns ?? [];
   const perPage = visParams.perPage ?? DEFAULT_PAGE_SIZE;
 
-  // Build columns + rows: formula computation, row number column, hidden column filtering.
+  // Build columns + rows: formula computation and row number column.
+  // Hidden column filtering is intentionally deferred to displayedColumns so that
+  // col0..colN indices in formulas always reference the same columns regardless of
+  // which columns are hidden.
   const { columns: allColumns, rows: allRows } = useMemo(() => {
     const result = computeColumnsForTable(rawTable.columns, rawTable.rows, computedColumns, totalHits);
     let cols = result.columns;
@@ -69,11 +78,6 @@ export const TableView: React.FC<TableViewProps> = ({
       rows = rows.map((row, i) => ({ [ROW_NUM_COL_ID]: i + 1, ...row }));
     }
 
-    const hiddenSet = parseHiddenColumns(visParams.hiddenColumns);
-    if (hiddenSet.size > 0) {
-      cols = cols.filter((_, i) => !hiddenSet.has(i));
-    }
-
     return { columns: cols, rows };
   }, [
     rawTable.columns,
@@ -81,35 +85,71 @@ export const TableView: React.FC<TableViewProps> = ({
     computedColumns,
     totalHits,
     visParams.addRowNumberColumn,
-    visParams.hiddenColumns,
   ]);
+
+  // Hidden columns: applied last, only for display. Formulas and totals use allColumns/allRows.
+  const displayedColumns = useMemo(() => {
+    const hiddenSet = parseHiddenColumns(visParams.hiddenColumns);
+    if (hiddenSet.size === 0) return allColumns;
+    return allColumns.filter((_, i) => !hiddenSet.has(i));
+  }, [allColumns, visParams.hiddenColumns]);
 
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(perPage);
   const [sortColumns, setSortColumns] = useState<EuiDataGridSorting['columns']>([]);
   const [filterText, setFilterText] = useState('');
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() =>
-    allColumns.map((col) => col.id)
+    displayedColumns.map((col) => col.id)
   );
 
   useEffect(() => {
-    setVisibleColumns(allColumns.map((col) => col.id));
-  }, [allColumns]);
+    setVisibleColumns(displayedColumns.map((col) => col.id));
+  }, [displayedColumns]);
 
-  // Filter bar: filter allRows by filterText before sorting and pagination.
+  const compiledRowFilter = useMemo(
+    () => (visParams.rowComputedFilter ? parseFormula(visParams.rowComputedFilter) : null),
+    [visParams.rowComputedFilter]
+  );
+
+  const compiledRowCss = useMemo(
+    () => (visParams.rowComputedCss ? parseFormula(visParams.rowComputedCss) : null),
+    [visParams.rowComputedCss]
+  );
+
+  const compiledCellCssMap = useMemo(() => {
+    const map = new Map<number, any>();
+    (visParams.computedColumns ?? []).filter((c) => c.enabled).forEach((cc, idx) => {
+      if (cc.cellComputedCss) {
+        const expr = parseFormula(cc.cellComputedCss);
+        if (expr) map.set(idx, expr);
+      }
+    });
+    return map;
+  }, [visParams.computedColumns]);
+
+  // Row formula filter: applied after computed columns, before text filter bar.
+  // Totals are still computed from allRows (unfiltered).
+  const formulaFilteredRows = useMemo(() => {
+    if (!compiledRowFilter) return allRows;
+    return allRows.filter((row, idx) =>
+      Boolean(evaluateRowExpression(compiledRowFilter, row, allColumns, allRows, idx, totalHits))
+    );
+  }, [allRows, compiledRowFilter, allColumns, totalHits]);
+
+  // Filter bar: filter formulaFilteredRows by filterText before sorting and pagination.
   const filteredRows = useMemo(() => {
-    if (!filterText || !visParams.showFilterBar) return allRows;
+    if (!filterText || !visParams.showFilterBar) return formulaFilteredRows;
     const caseSensitive = visParams.filterCaseSensitive ?? false;
     const termsSeparately = visParams.filterTermsSeparately ?? false;
     const text = caseSensitive ? filterText : filterText.toLowerCase();
     const terms = termsSeparately ? text.split(/\s+/).filter(Boolean) : [text];
-    return allRows.filter((row) => {
+    return formulaFilteredRows.filter((row) => {
       const cellValues = Object.values(row)
         .map((v) => (v == null ? '' : String(v)))
         .map((s) => (caseSensitive ? s : s.toLowerCase()));
       return terms.every((term) => cellValues.some((v) => v.includes(term)));
     });
-  }, [allRows, filterText, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
+  }, [formulaFilteredRows, filterText, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
 
   // Reset to first page when filter changes or dataset shrinks past current page.
   useEffect(() => {
@@ -143,6 +183,37 @@ export const TableView: React.FC<TableViewProps> = ({
   useEffect(() => {
     sortedRowsRef.current = sortedRows;
   }, [sortedRows]);
+
+  // Row CSS: evaluate formula per sorted row → build rowClasses + inject CSS rules.
+  const rowCssStyles = useMemo((): string[] | null => {
+    if (!compiledRowCss) return null;
+    return sortedRows.map((row, idx) => {
+      const result = evaluateRowExpression(compiledRowCss, row, allColumns, sortedRows, idx, totalHits);
+      return result != null ? String(result) : '';
+    });
+  }, [sortedRows, compiledRowCss, allColumns, totalHits]);
+
+  const { rowClasses, injectedCss } = useMemo(() => {
+    if (!rowCssStyles) return { rowClasses: {} as Record<number, string>, injectedCss: '' };
+    const cssRules: string[] = [];
+    const seen = new Map<string, string>();
+    const rc: Record<number, string> = {};
+    rowCssStyles.forEach((css, idx) => {
+      if (!css) return;
+      if (!seen.has(css)) {
+        const cls = `et2rc_${hashStr(css)}`;
+        seen.set(css, cls);
+        cssRules.push(`.${cls} { ${css} }`);
+      }
+      rc[idx] = seen.get(css)!;
+    });
+    return { rowClasses: rc, injectedCss: cssRules.join('\n') };
+  }, [rowCssStyles]);
+
+  const rowCssStyleRef = useRef<HTMLStyleElement>(null);
+  useEffect(() => {
+    if (rowCssStyleRef.current) rowCssStyleRef.current.textContent = injectedCss;
+  }, [injectedCss]);
 
   // Totals are always computed from allRows (not filtered), following legacy behavior.
   // The first column shows totalLabel if provided; remaining columns show computed totals.
@@ -187,7 +258,7 @@ export const TableView: React.FC<TableViewProps> = ({
     (async () => {
       const result: Record<string, any[]> = {};
       await Promise.all(
-        allColumns.map(async (col) => {
+        displayedColumns.map(async (col) => {
           if (!col.meta) return;
           try {
             const actions = await uiActions.getTriggerCompatibleActions(CELL_VALUE_TRIGGER, {
@@ -205,12 +276,12 @@ export const TableView: React.FC<TableViewProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [allColumns]);
+  }, [displayedColumns]);
 
   // Build EuiDataGrid column definitions including cellActions for filter and CELL_VALUE_TRIGGER.
   // rowIndex passed to cell actions is the absolute index into sortedRows.
   const gridColumns: EuiDataGridColumn[] = useMemo(() => {
-    return allColumns.map((col, colIndex) => {
+    return displayedColumns.map((col, colIndex) => {
       const cellActions: EuiDataGridColumnCellAction[] = [];
 
       if (col.filterable) {
@@ -220,7 +291,7 @@ export const TableView: React.FC<TableViewProps> = ({
           if (!row) return;
           const flatTable = {
             type: 'datatable' as const,
-            columns: allColumns.map((c) => ({ id: c.id, name: c.name, meta: c.meta ?? { type: 'string' } })),
+            columns: displayedColumns.map((c) => ({ id: c.id, name: c.name, meta: c.meta ?? { type: 'string' } })),
             rows: rows.map((r) => ({ ...r })),
           };
           fireEvent({
@@ -287,7 +358,7 @@ export const TableView: React.FC<TableViewProps> = ({
         ...(cellActions.length > 0 ? { cellActions } : {}),
       };
     });
-  }, [allColumns, columnCompatibleActions, fireEvent]);
+  }, [displayedColumns, columnCompatibleActions, fireEvent]);
 
   const trailingControlColumns: EuiDataGridControlColumn[] = useMemo(() => {
     if (!hasRowClickActions) return [];
@@ -330,11 +401,12 @@ export const TableView: React.FC<TableViewProps> = ({
 
   const filterBarWidth = visParams.filterBarWidth ?? '50%';
 
-  // Render a computed column cell value with optional Handlebars template.
+  // Render a computed column cell value with optional Handlebars template and cell CSS.
   const renderComputedCell = (
     columnId: string,
     rowData: Record<string, unknown>,
-    isTotals: boolean
+    isTotals: boolean,
+    rowIndex?: number
   ) => {
     const enabledComputedCols = (visParams.computedColumns ?? []).filter((c) => c.enabled);
     const ccMatch = columnId.match(/^computed_col_(\d+)$/);
@@ -344,6 +416,18 @@ export const TableView: React.FC<TableViewProps> = ({
     const rawVal = rowData[columnId];
     const formatted = cc ? formatComputedColumnValue(rawVal, cc) : String(rawVal ?? '');
     const align = cc?.alignment ?? 'left';
+
+    const cellCssExpr = compiledCellCssMap.get(ccIdx);
+    let cellCss = '';
+    if (cellCssExpr) {
+      const rows = isTotals ? [] : sortedRowsRef.current;
+      const ri = rowIndex ?? 0;
+      const result = evaluateRowExpression(cellCssExpr, rowData, allColumns, rows, ri, totalHits, {
+        value: formatted,
+        rawValue: rawVal,
+      });
+      cellCss = result != null ? String(result) : '';
+    }
 
     const compiled = compiledTemplates.get(ccIdx);
     const applyTpl = isTotals ? (cc?.applyTemplateOnTotal ?? false) : (cc?.applyTemplate ?? false);
@@ -356,13 +440,17 @@ export const TableView: React.FC<TableViewProps> = ({
         : <SafeHtmlCell html={html} style={{ display: 'block', textAlign: align }} />;
     }
 
-    return isTotals
-      ? <strong>{formatted}</strong>
-      : <span style={{ display: 'block', textAlign: align }}>{formatted}</span>;
+    if (isTotals) return <strong>{formatted}</strong>;
+
+    const inner = <span style={{ display: 'block', textAlign: align }}>{formatted}</span>;
+    return cellCss
+      ? <CssStyledCell cssText={cellCss} style={{ display: 'block' }}>{inner}</CssStyledCell>
+      : inner;
   };
 
   return (
     <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+      <style ref={rowCssStyleRef} />
       {rawTable.title && (
         <>
           <EuiText size="s">
@@ -395,7 +483,7 @@ export const TableView: React.FC<TableViewProps> = ({
           const row = sortedRows[rowIndex];
 
           const ccResult = row !== undefined
-            ? renderComputedCell(columnId, row, false)
+            ? renderComputedCell(columnId, row, false, rowIndex)
             : null;
           if (ccResult !== null) return ccResult;
 
@@ -424,7 +512,7 @@ export const TableView: React.FC<TableViewProps> = ({
         }}
         sorting={{ columns: sortColumns, onSort: setSortColumns }}
         trailingControlColumns={trailingControlColumns}
-        gridStyle={{ stripes: visParams.stripedRows }}
+        gridStyle={{ stripes: visParams.stripedRows, rowClasses }}
         toolbarVisibility={{
           showColumnSelector: true,
           showDisplaySelector: false,

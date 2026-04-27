@@ -234,6 +234,21 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
             </EuiFlexItem>
           </>
         )}
+
+        <EuiFlexItem>
+          <EuiFormRow
+            label={i18n.translate('enhancedTable2.computedColumn.cellComputedCss', { defaultMessage: 'Cell CSS formula' })}
+            helpText="Returns CSS string applied to this cell. Variables: value, rawValue, col0…colN. Example: value < 0 ? &quot;color: red&quot; : &quot;&quot;"
+            display="rowCompressed"
+          >
+            <EuiFieldText
+              compressed
+              placeholder='value < 0 ? "color: red; font-weight: bold" : ""'
+              value={column.cellComputedCss ?? ''}
+              onChange={(e) => update({ cellComputedCss: e.target.value })}
+            />
+          </EuiFormRow>
+        </EuiFlexItem>
       </EuiFlexGroup>
     </EuiAccordion>
   );

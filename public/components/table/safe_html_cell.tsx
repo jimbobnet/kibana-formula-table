@@ -21,3 +21,15 @@ export const SafeHtmlCell: React.FC<{
     ? <strong ref={ref as React.RefObject<HTMLElement>} style={style} />
     : <span ref={ref as React.RefObject<HTMLElement>} style={style} />;
 };
+
+export const CssStyledCell: React.FC<{
+  cssText: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}> = ({ cssText, style, children }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (ref.current) ref.current.style.cssText = cssText;
+  }, [cssText]);
+  return <span ref={ref} style={style}>{children}</span>;
+};

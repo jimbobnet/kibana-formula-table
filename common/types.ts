@@ -18,6 +18,7 @@ export interface ComputedColumn {
   applyTemplate?: boolean;
   applyTemplateOnTotal?: boolean;
   template?: string;
+  cellComputedCss?: string;
 }
 
 export interface FieldColumn {
@@ -53,6 +54,8 @@ export interface EnhancedTableParams {
   filterTermsSeparately?: boolean;
   filterHighlightResults?: boolean;
   filterBarWidth?: string;
+  rowComputedFilter?: string;
+  rowComputedCss?: string;
 }
 
 export interface DocumentTableParams {
@@ -73,6 +76,8 @@ export interface DocumentTableParams {
   filterTermsSeparately?: boolean;
   filterHighlightResults?: boolean;
   filterBarWidth?: string;
+  rowComputedFilter?: string;
+  rowComputedCss?: string;
   fieldColumns: FieldColumn[];
   hitsSize: number;
   sortField: { name: string };

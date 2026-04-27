@@ -127,3 +127,56 @@ export function computeColumnsForTable(
 
   return { columns: newColumns, rows: newRows };
 }
+
+export function parseFormula(formula: string): any | null {
+  try { return getParser().parse(formula); } catch { return null; }
+}
+
+export function evaluateRowExpression(
+  expr: any,
+  row: VisTableRow,
+  columns: VisTableColumn[],
+  rows: VisTableRow[],
+  rowIndex: number,
+  totalHits: number,
+  extraVars?: Record<string, unknown>
+): unknown {
+  const parser = getParser();
+
+  parser.functions.cell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
+    const idx =
+      rowRef === 'first' ? 0
+      : rowRef === 'last' ? rows.length - 1
+      : rowIndex + (rowRef as number);
+    const targetRow = rows[idx];
+    if (!targetRow) return defaultValue;
+    const col = columns[colRef];
+    if (!col) return defaultValue;
+    const n = toNum(targetRow[col.id]);
+    return n !== null ? n : defaultValue;
+  };
+
+  parser.functions.formattedCell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
+    const idx =
+      rowRef === 'first' ? 0
+      : rowRef === 'last' ? rows.length - 1
+      : rowIndex + (rowRef as number);
+    const targetRow = rows[idx];
+    if (!targetRow) return defaultValue;
+    const col = columns[colRef];
+    if (!col) return defaultValue;
+    const v = targetRow[col.id];
+    return v != null ? String(v) : defaultValue;
+  };
+
+  const vars: Record<string, unknown> = { totalHits, ...extraVars };
+  columns.forEach((col, i) => {
+    const v = row[col.id];
+    const n = toNum(v);
+    vars[`col${i}`] = n;
+    vars[`formattedCol${i}`] = v != null ? String(v) : '';
+    vars[col.name] = n;
+  });
+
+  try { return expr.evaluate(vars); } catch { return null; }
+}
