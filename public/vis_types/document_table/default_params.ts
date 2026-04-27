@@ -10,6 +10,8 @@ export const DOCUMENT_TABLE_DEFAULT_PARAMS: DocumentTableParams = {
   stripedRows: false,
   addRowNumberColumn: false,
   hideExportLinks: false,
+  csvExportWithTotal: false,
+  csvFullExport: false,
   hiddenColumns: '',
   showFilterBar: false,
   filterCaseSensitive: false,

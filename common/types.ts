@@ -46,6 +46,8 @@ export interface EnhancedTableParams {
   stripedRows: boolean;
   addRowNumberColumn: boolean;
   hideExportLinks: boolean;
+  csvExportWithTotal: boolean;
+  csvFullExport: boolean;
   hiddenColumns?: string;
   showFilterBar?: boolean;
   filterCaseSensitive?: boolean;
@@ -69,6 +71,8 @@ export interface DocumentTableParams {
   stripedRows: boolean;
   addRowNumberColumn: boolean;
   hideExportLinks: boolean;
+  csvExportWithTotal: boolean;
+  csvFullExport: boolean;
   hiddenColumns?: string;
   showFilterBar?: boolean;
   filterCaseSensitive?: boolean;

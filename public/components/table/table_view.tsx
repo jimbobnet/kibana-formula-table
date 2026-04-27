@@ -133,7 +133,7 @@ export const TableView: React.FC<TableViewProps> = ({
     displayedColumns.map((col) => col.id)
   );
   const [csvPopoverOpen, setCsvPopoverOpen] = useState(false);
-  const [csvIncludeTotals, setCsvIncludeTotals] = useState(false);
+  const [csvIncludeTotals, setCsvIncludeTotals] = useState(visParams.csvExportWithTotal ?? false);
 
   useEffect(() => {
     setVisibleColumns(displayedColumns.map((col) => col.id));
@@ -459,10 +459,16 @@ export const TableView: React.FC<TableViewProps> = ({
   const filterBarWidth = visParams.filterBarWidth ?? '50%';
 
   const handleExport = (rows: typeof sortedRows, includeTotals: boolean) => {
-    const enabledComputedCols = (visParams.computedColumns ?? []).filter((c) => c.enabled);
-    const content = buildCsvContent(rows, displayedColumns, enabledComputedCols, totalsRow, includeTotals);
     const title = rawTable.title || 'export';
-    downloadCsv(content, `${title}.csv`);
+    if (visParams.csvFullExport) {
+      const rawCols = rawTable.columns.map((c: any) => ({ id: c.id, name: c.name, meta: c.meta, filterable: false }));
+      const content = buildCsvContent(rawTable.rows as typeof sortedRows, rawCols, [], null, false);
+      downloadCsv(content, `${title}.csv`);
+    } else {
+      const enabledComputedCols = (visParams.computedColumns ?? []).filter((c) => c.enabled);
+      const content = buildCsvContent(rows, displayedColumns, enabledComputedCols, totalsRow, includeTotals);
+      downloadCsv(content, `${title}.csv`);
+    }
     setCsvPopoverOpen(false);
   };
 
@@ -485,7 +491,7 @@ export const TableView: React.FC<TableViewProps> = ({
           <EuiContextMenuItem key="all" onClick={() => handleExport(allRows, csvIncludeTotals)}>
             Export all rows
           </EuiContextMenuItem>,
-          ...(visParams.showTotal
+          ...(visParams.showTotal && !visParams.csvExportWithTotal
             ? [
                 <EuiContextMenuItem key="totals" onClick={(e) => e.stopPropagation()}>
                   <EuiCheckbox

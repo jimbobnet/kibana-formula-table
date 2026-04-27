@@ -11,6 +11,7 @@ import {
   EuiFlexGroup,
   EuiFlexItem,
   EuiFormRow,
+  EuiIconTip,
   EuiPanel,
   EuiSelect,
   EuiSpacer,
@@ -179,7 +180,49 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
           onChange={(e) => setValue('addRowNumberColumn', e.target.checked)}
         />
         <EuiSpacer size="m" />
+        <EuiSwitch
+          compressed
+          label={i18n.translate('enhancedTable2.options.hideExportLinks', { defaultMessage: 'Hide CSV export links' })}
+          checked={stateParams.hideExportLinks ?? false}
+          onChange={(e) => setValue('hideExportLinks', e.target.checked)}
+        />
+        <EuiSpacer size="m" />
 
+        <EuiSwitch
+          compressed
+          label={i18n.translate('enhancedTable2.options.csvExportWithTotal', { defaultMessage: 'CSV export with total row' })}
+          checked={stateParams.csvExportWithTotal ?? false}
+          disabled={!stateParams.showTotal}
+          onChange={(e) => setValue('csvExportWithTotal', e.target.checked)}
+        />
+        <EuiSpacer size="m" />
+
+        <EuiFlexGroup alignItems="center" gutterSize="xs" responsive={false}>
+          <EuiFlexItem grow={false}>
+            <EuiSwitch
+              compressed
+              label={i18n.translate('enhancedTable2.options.csvFullExport', { defaultMessage: 'Full CSV export' })}
+              checked={stateParams.csvFullExport ?? false}
+              disabled={
+                (stateParams.computedColumns ?? []).length > 0 ||
+                !!(stateParams as any).rowComputedFilter ||
+                !!stateParams.hiddenColumns ||
+                (stateParams.csvExportWithTotal ?? false) ||
+                stateParams.addRowNumberColumn
+              }
+              onChange={(e) => setValue('csvFullExport', e.target.checked)}
+            />
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiIconTip
+              content={i18n.translate('enhancedTable2.options.csvFullExportHelp', {
+                defaultMessage: "If enabled, CSV export will download all data without applying computed columns, row filter, hidden columns, or row number. Not compatible with 'CSV export with total row' or 'Add row number column'.",
+              })}
+              position="right"
+            />
+          </EuiFlexItem>
+        </EuiFlexGroup>
+        <EuiSpacer size="m" />
         <EuiSwitch
           compressed
           label={i18n.translate('enhancedTable2.options.sortSplitCols', { defaultMessage: 'Sort split tables' })}
