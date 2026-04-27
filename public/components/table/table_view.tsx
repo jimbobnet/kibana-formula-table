@@ -6,8 +6,13 @@ import {
   EuiDataGridControlColumn,
   EuiDataGridColumnCellAction,
   EuiDataGridColumnCellActionProps,
+  EuiButtonEmpty,
   EuiButtonIcon,
+  EuiCheckbox,
+  EuiContextMenuItem,
+  EuiContextMenuPanel,
   EuiFieldSearch,
+  EuiPopover,
   EuiText,
   EuiSpacer,
 } from '@elastic/eui';
@@ -17,6 +22,7 @@ import { computeColumnTotal } from './column_totals';
 import { formatComputedColumnValue } from './format_computed_value';
 import { compileTemplate, renderTemplate, buildTemplateContext } from './handlebars_template';
 import { SafeHtmlCell, CssStyledCell } from './safe_html_cell';
+import { buildCsvContent, downloadCsv } from './csv_export';
 import type { TemplateDelegate } from '@kbn/handlebars';
 import { getUiActions } from '../../services';
 import type { VisTable, EnhancedTableParams, DocumentTableParams } from '../../../common/types';
@@ -101,6 +107,8 @@ export const TableView: React.FC<TableViewProps> = ({
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() =>
     displayedColumns.map((col) => col.id)
   );
+  const [csvPopoverOpen, setCsvPopoverOpen] = useState(false);
+  const [csvIncludeTotals, setCsvIncludeTotals] = useState(false);
 
   useEffect(() => {
     setVisibleColumns(displayedColumns.map((col) => col.id));
@@ -401,6 +409,51 @@ export const TableView: React.FC<TableViewProps> = ({
 
   const filterBarWidth = visParams.filterBarWidth ?? '50%';
 
+  const handleExport = (rows: typeof sortedRows, includeTotals: boolean) => {
+    const enabledComputedCols = (visParams.computedColumns ?? []).filter((c) => c.enabled);
+    const content = buildCsvContent(rows, displayedColumns, enabledComputedCols, totalsRow, includeTotals);
+    const title = rawTable.title || 'export';
+    downloadCsv(content, `${title}.csv`);
+    setCsvPopoverOpen(false);
+  };
+
+  const exportButton = visParams.hideExportLinks ? null : (
+    <EuiPopover
+      button={
+        <EuiButtonEmpty size="xs" iconType="download" onClick={() => setCsvPopoverOpen((o) => !o)}>
+          Export
+        </EuiButtonEmpty>
+      }
+      isOpen={csvPopoverOpen}
+      closePopover={() => setCsvPopoverOpen(false)}
+      panelPaddingSize="s"
+    >
+      <EuiContextMenuPanel
+        items={[
+          <EuiContextMenuItem key="visible" onClick={() => handleExport(sortedRows, csvIncludeTotals)}>
+            Export visible rows
+          </EuiContextMenuItem>,
+          <EuiContextMenuItem key="all" onClick={() => handleExport(allRows, csvIncludeTotals)}>
+            Export all rows
+          </EuiContextMenuItem>,
+          ...(visParams.showTotal
+            ? [
+                <EuiContextMenuItem key="totals" onClick={(e) => e.stopPropagation()}>
+                  <EuiCheckbox
+                    id="csv-include-totals"
+                    label="Include totals row"
+                    checked={csvIncludeTotals}
+                    onChange={(e) => setCsvIncludeTotals(e.target.checked)}
+                    compressed
+                  />
+                </EuiContextMenuItem>,
+              ]
+            : []),
+        ]}
+      />
+    </EuiPopover>
+  );
+
   // Render a computed column cell value with optional Handlebars template and cell CSS.
   const renderComputedCell = (
     columnId: string,
@@ -449,7 +502,7 @@ export const TableView: React.FC<TableViewProps> = ({
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <style ref={rowCssStyleRef} />
       {rawTable.title && (
         <>
@@ -461,7 +514,7 @@ export const TableView: React.FC<TableViewProps> = ({
       )}
       {visParams.showFilterBar && (
         <>
-          <div style={{ width: filterBarWidth }}>
+          <div style={{ width: filterBarWidth, paddingLeft: 4 }}>
             <EuiFieldSearch
               compressed
               placeholder="Filter…"
@@ -474,6 +527,7 @@ export const TableView: React.FC<TableViewProps> = ({
           <EuiSpacer size="xs" />
         </>
       )}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
       <EuiDataGrid
         aria-label={rawTable.title ?? 'Enhanced Table 2'}
         columns={gridColumns}
@@ -518,8 +572,10 @@ export const TableView: React.FC<TableViewProps> = ({
           showDisplaySelector: false,
           showFullScreenSelector: false,
           showSortSelector: true,
+          additionalControls: exportButton,
         }}
       />
+      </div>
     </div>
   );
 };
