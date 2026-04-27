@@ -81,6 +81,128 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
 
   return (
     <div>
+        {/* COMPUTED COLUMNS */}
+      <EuiPanel paddingSize="s">
+        <EuiFlexGroup justifyContent="spaceBetween" alignItems="center">
+          <EuiFlexItem>
+            <EuiTitle size="xs">
+              <h3>{i18n.translate('enhancedTable2.options.computedColumns', { defaultMessage: 'Computed columns' })}</h3>
+            </EuiTitle>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiButtonEmpty
+              size="xs"
+              iconType="plusInCircle"
+              onClick={() => setValue('computedColumns', [...(stateParams.computedColumns ?? []), { ...NEW_COMPUTED_COLUMN }])}
+            >
+              {i18n.translate('enhancedTable2.options.addComputedColumn', { defaultMessage: 'Add column' })}
+            </EuiButtonEmpty>
+          </EuiFlexItem>
+        </EuiFlexGroup>
+
+        <EuiSpacer size="s" />
+        <EuiDragDropContext onDragEnd={onComputedColumnDragEnd}>
+          <EuiDroppable droppableId="computedColumns" spacing="s">
+            <>
+              {(stateParams.computedColumns ?? []).map((cc, idx) => (
+                <EuiDraggable
+                  key={`comp-col-${idx}`}
+                  index={idx}
+                  draggableId={`comp-col-${idx}`}
+                  customDragHandle={true}
+                  spacing="s"
+                >
+                  {(provided) => (
+                    <ComputedColumnEditorItem
+                      column={cc}
+                      index={idx}
+                      onChange={(updated) => updateComputedColumn(idx, updated)}
+                      onRemove={() => removeComputedColumn(idx)}
+                      dragHandleProps={provided.dragHandleProps as React.HTMLAttributes<HTMLDivElement>}
+                    />
+                  )}
+                </EuiDraggable>
+              ))}
+            </>
+          </EuiDroppable>
+        </EuiDragDropContext>
+      </EuiPanel>
+      <EuiSpacer size="m" />
+
+      {/* Enhanced Settings */}
+      <EuiPanel paddingSize="s">
+        <EuiTitle size="xs">
+          <h3>{i18n.translate('enhancedTable2.options.rowFormulas', { defaultMessage: 'Enhanced settings' })}</h3>
+        </EuiTitle>
+        <EuiSpacer size="s" />
+
+        <EuiFormRow
+          label={i18n.translate('enhancedTable2.options.rowComputedFilter', { defaultMessage: 'Row filter formula' })}
+          helpText={i18n.translate('enhancedTable2.options.rowComputedFilterHelp', { defaultMessage: 'Truthy = show row. Variables: col0…colN, formattedCol0…, totalHits. Example: col0 > 10' })}
+          display="rowCompressed"
+        >
+          <EuiFieldText
+            compressed
+            placeholder="col0 > 10"
+            value={stateParams.rowComputedFilter ?? ''}
+            onChange={(e) => setValue('rowComputedFilter', e.target.value)}
+          />
+        </EuiFormRow>
+        <EuiSpacer size="s" />
+
+        <EuiFormRow
+          label={i18n.translate('enhancedTable2.options.rowComputedCss', { defaultMessage: 'Row CSS formula' })}
+          helpText={i18n.translate('enhancedTable2.options.rowComputedCssHelp', { defaultMessage: 'Returns CSS string applied to the entire row. Example: col0 < 0 ? "background-color: #fdd" : ""' })}
+          display="rowCompressed"
+        >
+          <EuiFieldText
+            compressed
+            placeholder='col0 < 0 ? "background-color: #fdd" : ""'
+            value={stateParams.rowComputedCss ?? ''}
+            onChange={(e) => setValue('rowComputedCss', e.target.value)}
+          />
+        </EuiFormRow>
+
+        <EuiSpacer size="m" />
+        <EuiSwitch
+          compressed
+          label={i18n.translate('enhancedTable2.options.stripedRows', { defaultMessage: 'Striped rows' })}
+          checked={stateParams.stripedRows}
+          onChange={(e) => setValue('stripedRows', e.target.checked)}
+        />
+        <EuiSpacer size="m" />
+
+        <EuiSwitch
+          compressed
+          label={i18n.translate('enhancedTable2.options.addRowNumberColumn', { defaultMessage: 'Add row number column' })}
+          checked={stateParams.addRowNumberColumn}
+          onChange={(e) => setValue('addRowNumberColumn', e.target.checked)}
+        />
+        <EuiSpacer size="m" />
+
+        <EuiSwitch
+          compressed
+          label={i18n.translate('enhancedTable2.options.sortSplitCols', { defaultMessage: 'Sort split tables' })}
+          checked={(stateParams as any).sortSplitCols ?? false}
+          onChange={(e) => setValue('sortSplitCols' as any, e.target.checked)}
+        />
+        <EuiSpacer size="m" />
+
+        <EuiFormRow
+          label={i18n.translate('enhancedTable2.options.hiddenColumns', { defaultMessage: 'Hidden columns' })}
+          helpText={i18n.translate('enhancedTable2.options.hiddenColumnsHelp', { defaultMessage: 'Comma-separated column indices to hide (e.g. 0,2)' })}
+          display="rowCompressed"
+        >
+          <EuiFieldText
+            compressed
+            placeholder="0,2"
+            value={stateParams.hiddenColumns ?? ''}
+            onChange={(e) => setValue('hiddenColumns', e.target.value)}
+          />
+        </EuiFormRow>
+      </EuiPanel>
+      <EuiSpacer size="m" />
+
       {/* BASIC SETTINGS */}
       <EuiPanel paddingSize="s">
         <EuiTitle size="xs">
@@ -120,53 +242,6 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
 
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.stripedRows', { defaultMessage: 'Striped rows' })}
-          checked={stateParams.stripedRows}
-          onChange={(e) => setValue('stripedRows', e.target.checked)}
-        />
-        <EuiSpacer size="s" />
-
-        <EuiSwitch
-          compressed
-          label={i18n.translate('enhancedTable2.options.addRowNumberColumn', { defaultMessage: 'Add row number column' })}
-          checked={stateParams.addRowNumberColumn}
-          onChange={(e) => setValue('addRowNumberColumn', e.target.checked)}
-        />
-        <EuiSpacer size="s" />
-
-        <EuiSwitch
-          compressed
-          label={i18n.translate('enhancedTable2.options.sortSplitCols', { defaultMessage: 'Sort split tables' })}
-          checked={(stateParams as any).sortSplitCols ?? false}
-          onChange={(e) => setValue('sortSplitCols' as any, e.target.checked)}
-        />
-        <EuiSpacer size="s" />
-
-        <EuiFormRow
-          label={i18n.translate('enhancedTable2.options.hiddenColumns', { defaultMessage: 'Hidden columns' })}
-          helpText={i18n.translate('enhancedTable2.options.hiddenColumnsHelp', { defaultMessage: 'Comma-separated column indices to hide (e.g. 0,2)' })}
-          display="rowCompressed"
-        >
-          <EuiFieldText
-            compressed
-            placeholder="0,2"
-            value={stateParams.hiddenColumns ?? ''}
-            onChange={(e) => setValue('hiddenColumns', e.target.value)}
-          />
-        </EuiFormRow>
-      </EuiPanel>
-
-      <EuiSpacer size="m" />
-
-      {/* TOTALS */}
-      <EuiPanel paddingSize="s">
-        <EuiTitle size="xs">
-          <h3>{i18n.translate('enhancedTable2.options.totals', { defaultMessage: 'Column totals' })}</h3>
-        </EuiTitle>
-        <EuiSpacer size="s" />
-
-        <EuiSwitch
-          compressed
           label={i18n.translate('enhancedTable2.options.showTotal', { defaultMessage: 'Show column totals' })}
           checked={stateParams.showTotal}
           onChange={(e) => setValue('showTotal', e.target.checked)}
@@ -199,7 +274,6 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
           </>
         )}
       </EuiPanel>
-
       <EuiSpacer size="m" />
 
       {/* FILTER BAR */}
@@ -260,92 +334,6 @@ export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
             />
           </>
         )}
-      </EuiPanel>
-
-      <EuiSpacer size="m" />
-
-      {/* ROW FORMULAS */}
-      <EuiPanel paddingSize="s">
-        <EuiTitle size="xs">
-          <h3>{i18n.translate('enhancedTable2.options.rowFormulas', { defaultMessage: 'Row formulas' })}</h3>
-        </EuiTitle>
-        <EuiSpacer size="s" />
-
-        <EuiFormRow
-          label={i18n.translate('enhancedTable2.options.rowComputedFilter', { defaultMessage: 'Row filter formula' })}
-          helpText={i18n.translate('enhancedTable2.options.rowComputedFilterHelp', { defaultMessage: 'Truthy = show row. Variables: col0…colN, formattedCol0…, totalHits. Example: col0 > 10' })}
-          display="rowCompressed"
-        >
-          <EuiFieldText
-            compressed
-            placeholder="col0 > 10"
-            value={stateParams.rowComputedFilter ?? ''}
-            onChange={(e) => setValue('rowComputedFilter', e.target.value)}
-          />
-        </EuiFormRow>
-        <EuiSpacer size="s" />
-
-        <EuiFormRow
-          label={i18n.translate('enhancedTable2.options.rowComputedCss', { defaultMessage: 'Row CSS formula' })}
-          helpText={i18n.translate('enhancedTable2.options.rowComputedCssHelp', { defaultMessage: 'Returns CSS string applied to the entire row. Example: col0 < 0 ? "background-color: #fdd" : ""' })}
-          display="rowCompressed"
-        >
-          <EuiFieldText
-            compressed
-            placeholder='col0 < 0 ? "background-color: #fdd" : ""'
-            value={stateParams.rowComputedCss ?? ''}
-            onChange={(e) => setValue('rowComputedCss', e.target.value)}
-          />
-        </EuiFormRow>
-      </EuiPanel>
-
-      <EuiSpacer size="m" />
-
-      {/* COMPUTED COLUMNS */}
-      <EuiPanel paddingSize="s">
-        <EuiFlexGroup justifyContent="spaceBetween" alignItems="center">
-          <EuiFlexItem>
-            <EuiTitle size="xs">
-              <h3>{i18n.translate('enhancedTable2.options.computedColumns', { defaultMessage: 'Computed columns' })}</h3>
-            </EuiTitle>
-          </EuiFlexItem>
-          <EuiFlexItem grow={false}>
-            <EuiButtonEmpty
-              size="xs"
-              iconType="plusInCircle"
-              onClick={() => setValue('computedColumns', [...(stateParams.computedColumns ?? []), { ...NEW_COMPUTED_COLUMN }])}
-            >
-              {i18n.translate('enhancedTable2.options.addComputedColumn', { defaultMessage: 'Add column' })}
-            </EuiButtonEmpty>
-          </EuiFlexItem>
-        </EuiFlexGroup>
-
-        <EuiSpacer size="s" />
-        <EuiDragDropContext onDragEnd={onComputedColumnDragEnd}>
-          <EuiDroppable droppableId="computedColumns" spacing="s">
-            <>
-              {(stateParams.computedColumns ?? []).map((cc, idx) => (
-                <EuiDraggable
-                  key={`comp-col-${idx}`}
-                  index={idx}
-                  draggableId={`comp-col-${idx}`}
-                  customDragHandle={true}
-                  spacing="s"
-                >
-                  {(provided) => (
-                    <ComputedColumnEditorItem
-                      column={cc}
-                      index={idx}
-                      onChange={(updated) => updateComputedColumn(idx, updated)}
-                      onRemove={() => removeComputedColumn(idx)}
-                      dragHandleProps={provided.dragHandleProps as React.HTMLAttributes<HTMLDivElement>}
-                    />
-                  )}
-                </EuiDraggable>
-              ))}
-            </>
-          </EuiDroppable>
-        </EuiDragDropContext>
       </EuiPanel>
     </div>
   );
