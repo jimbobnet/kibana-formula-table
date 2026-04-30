@@ -18,9 +18,14 @@ import {
   EuiSwitch,
   EuiTitle,
 } from '@elastic/eui';
-import type { VisEditorOptionsProps } from '@kbn/visualizations-plugin/public';
 import { ComputedColumnEditorItem } from './computed_column_editor';
 import type { ComputedColumn } from '../../../common/types';
+
+interface EnhancedTableEditorProps {
+  stateParams: any;
+  setValue: (key: string, value: any) => void;
+  setValidity: (isValid: boolean) => void;
+}
 
 const TOTAL_FUNC_OPTIONS = [
   { value: 'sum', text: 'Sum' },
@@ -52,7 +57,7 @@ const NEW_COMPUTED_COLUMN: ComputedColumn = {
   cellComputedCss: '',
 };
 
-export const EnhancedTableOptions: React.FC<VisEditorOptionsProps<any>> = ({
+export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
   stateParams,
   setValue,
   setValidity,

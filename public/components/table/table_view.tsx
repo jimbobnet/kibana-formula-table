@@ -361,7 +361,7 @@ export const TableView: React.FC<TableViewProps> = ({
           if (!row || row[col.id] == null) return null;
           return (
             <Component
-              iconType="plusCircle"
+              iconType="plusInCircle"
               aria-label={`Filter for: ${row[col.id]}`}
               onClick={() => buildFilterEvent(rowIndex, false)}
             >
@@ -375,7 +375,7 @@ export const TableView: React.FC<TableViewProps> = ({
           if (!row || row[col.id] == null) return null;
           return (
             <Component
-              iconType="minusCircle"
+              iconType="minusInCircle"
               aria-label={`Filter out: ${row[col.id]}`}
               onClick={() => buildFilterEvent(rowIndex, true)}
             >

@@ -12,7 +12,10 @@
     "../../typings/**/*"
   ],
   "kbn_references": [
-    "@kbn/handlebars"
+    "@kbn/handlebars",
+    "@kbn/presentation-publishing",
+    "@kbn/presentation-containers",
+    "@kbn/embeddable-enhanced-plugin"
   ],
   "exclude": []
 }

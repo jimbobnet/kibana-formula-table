@@ -1,48 +1,84 @@
 import type { CoreSetup, CoreStart, Plugin } from '@kbn/core/public';
-import type { SetupDependencies, StartDependencies, EnhancedTable2PluginSetup, EnhancedTable2PluginStart } from './types';
+import { ADD_PANEL_TRIGGER } from '@kbn/ui-actions-plugin/public';
+import { apiCanAddNewPanel } from '@kbn/presentation-containers';
+import type { EmbeddableApiContext } from '@kbn/presentation-publishing';
+import type {
+  SetupDependencies,
+  StartDependencies,
+  EnhancedTable2PluginSetup,
+  EnhancedTable2PluginStart,
+} from './types';
 import {
   setFormatService,
   setNotifications,
   setSearchService,
   setDataViewsStart,
-  setVisualization,
   setThemeService,
   setUiActions,
+  setEmbeddableEnhanced,
 } from './services';
-import { getEnhancedTableExpressionFn } from './expression/enhanced_table_fn';
-import { getDocumentTableExpressionFn } from './expression/document_table_fn';
-import { getEnhancedTable2Renderer } from './expression/vis_renderer';
-import { getEnhancedTableVisType } from './vis_types/enhanced_table/vis_type';
-import { getDocumentTableVisType } from './vis_types/document_table/vis_type';
+import {
+  ENHANCED_TABLE_EMBEDDABLE_TYPE,
+  createEnhancedTableEmbeddableFactory,
+} from './react_embeddable/enhanced_table_embeddable';
+import {
+  DOCUMENT_TABLE_EMBEDDABLE_TYPE,
+  createDocumentTableEmbeddableFactory,
+} from './react_embeddable/document_table_embeddable';
+
+const ADD_ENHANCED_TABLE_ACTION_ID = 'addEnhancedTable2PanelAction';
+const ADD_DOCUMENT_TABLE_ACTION_ID = 'addDocumentTable2PanelAction';
 
 export class EnhancedTable2Plugin
   implements Plugin<EnhancedTable2PluginSetup, EnhancedTable2PluginStart, SetupDependencies, StartDependencies>
 {
   public setup(
-    core: CoreSetup<StartDependencies>,
-    { expressions, visualizations }: SetupDependencies
+    _core: CoreSetup<StartDependencies>,
+    { embeddable }: SetupDependencies
   ): EnhancedTable2PluginSetup {
-    expressions.registerFunction(getEnhancedTableExpressionFn());
-    expressions.registerFunction(getDocumentTableExpressionFn());
-
-    core.getStartServices().then(([coreStart]) => {
-      expressions.registerRenderer(getEnhancedTable2Renderer(coreStart));
-    });
-
-    visualizations.createBaseVisualization(getEnhancedTableVisType());
-    visualizations.createBaseVisualization(getDocumentTableVisType());
+    embeddable.registerReactEmbeddableFactory(ENHANCED_TABLE_EMBEDDABLE_TYPE, async () =>
+      createEnhancedTableEmbeddableFactory()
+    );
+    embeddable.registerReactEmbeddableFactory(DOCUMENT_TABLE_EMBEDDABLE_TYPE, async () =>
+      createDocumentTableEmbeddableFactory()
+    );
 
     return {};
   }
 
-  public start(core: CoreStart, deps: StartDependencies): EnhancedTable2PluginStart {
+  public start(_core: CoreStart, deps: StartDependencies): EnhancedTable2PluginStart {
     setFormatService(deps.fieldFormats);
-    setNotifications(core.notifications);
+    setNotifications(_core.notifications);
     setSearchService(deps.data.search);
     setDataViewsStart(deps.dataViews);
-    setVisualization(deps.visualizations);
-    setThemeService(core.theme);
+    setThemeService(_core.theme);
     setUiActions(deps.uiActions);
+    setEmbeddableEnhanced(deps.embeddableEnhanced);
+
+    // Register "Add panel" actions so both embeddable types appear in the dashboard Add panel menu.
+    deps.uiActions.registerAction<EmbeddableApiContext>({
+      id: ADD_ENHANCED_TABLE_ACTION_ID,
+      getDisplayName: () => 'Enhanced Table 2',
+      getIconType: () => 'visTable',
+      isCompatible: async ({ embeddable }) => apiCanAddNewPanel(embeddable),
+      execute: async ({ embeddable }) => {
+        if (!apiCanAddNewPanel(embeddable)) return;
+        embeddable.addNewPanel({ panelType: ENHANCED_TABLE_EMBEDDABLE_TYPE }, true);
+      },
+    });
+    deps.uiActions.attachAction(ADD_PANEL_TRIGGER, ADD_ENHANCED_TABLE_ACTION_ID);
+
+    deps.uiActions.registerAction<EmbeddableApiContext>({
+      id: ADD_DOCUMENT_TABLE_ACTION_ID,
+      getDisplayName: () => 'Document Table 2',
+      getIconType: () => 'visTable',
+      isCompatible: async ({ embeddable }) => apiCanAddNewPanel(embeddable),
+      execute: async ({ embeddable }) => {
+        if (!apiCanAddNewPanel(embeddable)) return;
+        embeddable.addNewPanel({ panelType: DOCUMENT_TABLE_EMBEDDABLE_TYPE }, true);
+      },
+    });
+    deps.uiActions.attachAction(ADD_PANEL_TRIGGER, ADD_DOCUMENT_TABLE_ACTION_ID);
 
     return {};
   }

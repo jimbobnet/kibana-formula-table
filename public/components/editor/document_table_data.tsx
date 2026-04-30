@@ -18,8 +18,15 @@ import {
   EuiSpacer,
   EuiTitle,
 } from '@elastic/eui';
-import type { VisEditorOptionsProps } from '@kbn/visualizations-plugin/public';
+import type { DataView } from '@kbn/data-views-plugin/public';
 import type { DocumentTableParams, FieldColumn } from '../../../common/types';
+
+interface DocumentTableDataProps {
+  stateParams: DocumentTableParams;
+  setValue: <K extends keyof DocumentTableParams>(key: K, value: DocumentTableParams[K]) => void;
+  setValidity: (isValid: boolean) => void;
+  dataView?: DataView;
+}
 
 const SORT_ORDER_OPTIONS = [
   { value: 'desc', text: i18n.translate('enhancedTable2.docTable.descending', { defaultMessage: 'Descending' }) },
@@ -32,11 +39,11 @@ const NEW_FIELD_COLUMN: FieldColumn = {
   enabled: true,
 };
 
-export const DocumentTableData: React.FC<VisEditorOptionsProps<DocumentTableParams>> = ({
+export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
   stateParams,
   setValue,
   setValidity,
-  aggs,
+  dataView,
 }) => {
   const isValid =
     typeof stateParams.hitsSize === 'number' && stateParams.hitsSize > 0;
@@ -46,7 +53,7 @@ export const DocumentTableData: React.FC<VisEditorOptionsProps<DocumentTablePara
   }, [isValid, setValidity]);
 
   const fieldColumns = stateParams.fieldColumns ?? [];
-  const sortableFields = (aggs?.indexPattern?.fields ?? []).filter(
+  const sortableFields = (dataView?.fields ?? []).filter(
     (f: any) => f.sortable
   );
   const sortFieldOptions = [
@@ -54,7 +61,7 @@ export const DocumentTableData: React.FC<VisEditorOptionsProps<DocumentTablePara
     ...sortableFields.map((f: any) => ({ value: f.name, text: f.name })),
   ];
 
-  const allFields = (aggs?.indexPattern?.fields ?? []).map((f: any) => ({
+  const allFields = (dataView?.fields ?? []).map((f: any) => ({
     value: f.name,
     text: f.name,
   }));

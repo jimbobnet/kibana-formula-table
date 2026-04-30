@@ -6,15 +6,12 @@
     "name": "james.atack@onyphe.io",
     "githubTeam": ""
   },
-  "description": "React + Embeddable table visualizations with ROW_CLICK_TRIGGER support",
+  "description": "React embeddable table visualizations with ROW_CLICK_TRIGGER support",
   "server": false,
   "ui": true,
   "requiredPlugins": [
     "data",
     "dataViews",
-    "expressions",
-    "visualizations",
-    "visDefaultEditor",
     "fieldFormats",
     "uiActions",
     "embeddable",
@@ -22,5 +19,5 @@
     "kibanaUtils",
     "kibanaReact"
   ],
-  "optionalPlugins": ["share", "usageCollection"]
+  "optionalPlugins": ["share", "usageCollection", "embeddableEnhanced"]
 }
