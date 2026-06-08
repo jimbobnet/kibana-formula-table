@@ -7,7 +7,7 @@ interface SetupDeps {
   contentManagement: ContentManagementServerSetup;
 }
 
-export class EnhancedTable2ServerPlugin implements Plugin {
+export class FormulaTableServerPlugin implements Plugin {
   public setup(core: CoreSetup, { contentManagement }: SetupDeps) {
     core.savedObjects.registerType({
       name: SAVED_OBJECT_TYPE,
