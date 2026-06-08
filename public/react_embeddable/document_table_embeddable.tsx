@@ -129,16 +129,23 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
         serializeState,
 
         // HasLibraryTransforms
-        canLinkToLibrary: async () => !savedObjectId$.getValue(),
+        canLinkToLibrary: async () => true,
         canUnlinkFromLibrary: async () => Boolean(savedObjectId$.getValue()),
 
         saveToLibrary: async (title: string): Promise<string> => {
-          const so = await getSavedObjectsClient().create<SOAttributes>(SAVED_OBJECT_TYPE, {
+          const existingId = savedObjectId$.getValue();
+          const attrs = {
             title,
             subType: DOCUMENT_TABLE_EMBEDDABLE_TYPE,
             indexId: indexId$.getValue(),
             params: JSON.stringify(params$.getValue()),
-          });
+          };
+          if (existingId) {
+            await getSavedObjectsClient().update<SOAttributes>(SAVED_OBJECT_TYPE, existingId, attrs);
+            return existingId;
+          }
+          const so = await getSavedObjectsClient().create<SOAttributes>(SAVED_OBJECT_TYPE, attrs);
+          savedObjectId$.next(so.id);
           return so.id;
         },
 

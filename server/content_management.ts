@@ -34,6 +34,7 @@ export class EnhancedTableStorage implements ContentStorage {
       attributes: {
         title: savedObject.attributes.title ?? '',
         description: '',
+        subType: savedObject.attributes.subType,
       },
       references: savedObject.references,
       namespaces: savedObject.namespaces,
