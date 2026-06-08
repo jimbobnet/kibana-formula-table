@@ -2,7 +2,7 @@ import type { CoreSetup, CoreStart, Plugin } from '@kbn/core/public';
 import { ADD_PANEL_TRIGGER } from '@kbn/ui-actions-plugin/public';
 import { apiCanAddNewPanel } from '@kbn/presentation-containers';
 import type { EmbeddableApiContext } from '@kbn/presentation-publishing';
-import { SAVED_OBJECT_TYPE } from '../common';
+import { SAVED_OBJECT_TYPE, PLUGIN_ID } from '../common';
 import type {
   SetupDependencies,
   StartDependencies,
@@ -36,8 +36,14 @@ export class EnhancedTable2Plugin
 {
   public setup(
     _core: CoreSetup<StartDependencies>,
-    { embeddable }: SetupDependencies
+    { embeddable, contentManagement }: SetupDependencies
   ): EnhancedTable2PluginSetup {
+    contentManagement.registry.register({
+      id: SAVED_OBJECT_TYPE,
+      version: { latest: 1 },
+      name: PLUGIN_ID,
+    });
+
     embeddable.registerReactEmbeddableFactory(ENHANCED_TABLE_EMBEDDABLE_TYPE, async () =>
       createEnhancedTableEmbeddableFactory()
     );
