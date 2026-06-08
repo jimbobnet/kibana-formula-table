@@ -15,7 +15,6 @@ import {
   EuiSpacer,
   EuiTab,
   EuiTabs,
-  EuiTextArea,
   EuiTitle,
 } from '@elastic/eui';
 import type { DataViewListItem } from '@kbn/data-views-plugin/public';
@@ -23,6 +22,12 @@ import type { DataView } from '@kbn/data-views-plugin/public';
 import type { EnhancedTableParams, DocumentTableParams } from '../../common/types';
 import { EnhancedTableOptions } from '../components/editor/enhanced_table_options';
 import { DocumentTableData } from '../components/editor/document_table_data';
+import {
+  AggConfigsEditor,
+  parseAggRowsFromConfig,
+  serializeAggRows,
+} from '../components/editor/agg_configs_editor';
+import type { AggRow } from '../components/editor/agg_configs_editor';
 import { getDataViewsStart } from '../services';
 
 // ─── Enhanced Table ────────────────────────────────────────────────────────────
@@ -50,17 +55,22 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
   onClose,
 }) => {
   const [localIndexId, setLocalIndexId] = useState(indexId ?? '');
-  const [localAggConfigs, setLocalAggConfigs] = useState(
-    JSON.stringify(aggConfigs, null, 2)
+  const [localAggRows, setLocalAggRows] = useState<AggRow[]>(() =>
+    parseAggRowsFromConfig(aggConfigs, schemas)
   );
-  const [localSchemas, setLocalSchemas] = useState(JSON.stringify(schemas, null, 2));
   const [localParams, setLocalParams] = useState<EnhancedTableParams>({ ...params });
   const [dataViewList, setDataViewList] = useState<DataViewListItem[]>([]);
+  const [dataView, setDataView] = useState<DataView | undefined>();
   const [activeTab, setActiveTab] = useState<'query' | 'display'>('query');
 
   useEffect(() => {
     getDataViewsStart().getIdsWithTitle().then(setDataViewList).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!localIndexId) { setDataView(undefined); return; }
+    getDataViewsStart().get(localIndexId).then(setDataView).catch(() => setDataView(undefined));
+  }, [localIndexId]);
 
   const dvOptions: EuiComboBoxOptionOption<string>[] = dataViewList.map((dv) => ({
     label: dv.name ?? dv.title,
@@ -68,14 +78,12 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
   }));
 
   const handleSave = () => {
-    let parsedAggConfigs: unknown[] = [];
-    let parsedSchemas: Record<string, number[]> = {};
-    try { parsedAggConfigs = JSON.parse(localAggConfigs); } catch {}
-    try { parsedSchemas = JSON.parse(localSchemas); } catch {}
+    const { aggConfigs: serializedAggConfigs, schemas: serializedSchemas } =
+      serializeAggRows(localAggRows);
     onSave({
       indexId: localIndexId,
-      aggConfigs: parsedAggConfigs,
-      schemas: parsedSchemas,
+      aggConfigs: serializedAggConfigs,
+      schemas: serializedSchemas,
       params: localParams,
     });
     onClose();
@@ -117,28 +125,11 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
             </EuiFormRow>
             <EuiSpacer size="s" />
 
-            <EuiFormRow
-              label={i18n.translate('enhancedTable2.editFlyout.aggConfigs', { defaultMessage: 'Aggregation configs (JSON)' })}
-              helpText={i18n.translate('enhancedTable2.editFlyout.aggConfigsHelp', { defaultMessage: 'Array of Kibana aggregation config objects' })}
-            >
-              <EuiTextArea
-                rows={8}
-                value={localAggConfigs}
-                onChange={(e) => setLocalAggConfigs(e.target.value)}
-              />
-            </EuiFormRow>
-            <EuiSpacer size="s" />
-
-            <EuiFormRow
-              label={i18n.translate('enhancedTable2.editFlyout.schemas', { defaultMessage: 'Schemas (JSON)' })}
-              helpText={i18n.translate('enhancedTable2.editFlyout.schemasHelp', { defaultMessage: 'Maps schema names to column indices, e.g. {"metric":[0],"bucket":[1]}' })}
-            >
-              <EuiTextArea
-                rows={3}
-                value={localSchemas}
-                onChange={(e) => setLocalSchemas(e.target.value)}
-              />
-            </EuiFormRow>
+            <AggConfigsEditor
+              value={localAggRows}
+              onChange={setLocalAggRows}
+              dataView={dataView}
+            />
           </>
         )}
 
