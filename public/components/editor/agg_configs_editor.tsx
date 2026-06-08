@@ -357,8 +357,10 @@ interface AggSectionProps {
   typeOptions: Array<{ value: string; text: string }>;
   metricRows: AggRow[];
   minRows: number;
+  maxRows?: number;
   emptyLabel: string;
   addLabel: string;
+  hint?: string;
   dataView: DataView | undefined;
   onAdd: () => void;
   onDragEnd: (result: DropResult) => void;
@@ -373,8 +375,10 @@ const AggSection: React.FC<AggSectionProps> = ({
   typeOptions,
   metricRows,
   minRows,
+  maxRows,
   emptyLabel,
   addLabel,
+  hint,
   dataView,
   onAdd,
   onDragEnd,
@@ -388,13 +392,21 @@ const AggSection: React.FC<AggSectionProps> = ({
           <h3>{title}</h3>
         </EuiTitle>
       </EuiFlexItem>
-      <EuiFlexItem grow={false}>
-        <EuiButtonEmpty size="xs" iconType="plusInCircle" onClick={onAdd}>
-          {addLabel}
-        </EuiButtonEmpty>
-      </EuiFlexItem>
+      {(maxRows === undefined || rows.length < maxRows) && (
+        <EuiFlexItem grow={false}>
+          <EuiButtonEmpty size="xs" iconType="plusInCircle" onClick={onAdd}>
+            {addLabel}
+          </EuiButtonEmpty>
+        </EuiFlexItem>
+      )}
     </EuiFlexGroup>
     <EuiSpacer size="s" />
+    {hint && rows.length > 0 && (
+      <>
+        <EuiText size="xs" color="subdued"><p>{hint}</p></EuiText>
+        <EuiSpacer size="xs" />
+      </>
+    )}
     {rows.length === 0 && (
       <EuiText size="s" color="subdued">
         <p>{emptyLabel}</p>
@@ -445,45 +457,43 @@ export const AggConfigsEditor: React.FC<AggConfigsEditorProps> = ({
   dataView,
 }) => {
   const metricRows = value.filter((r) => r.schema === 'metric');
+  const splitRows = value.filter((r) => r.schema === 'split');
   const bucketRows = value.filter((r) => r.schema === 'bucket');
-  const otherRows = value.filter((r) => r.schema !== 'metric' && r.schema !== 'bucket');
+  const splitcolsRows = value.filter((r) => r.schema === 'splitcols');
+
+  // Canonical order: metrics → split (table) → bucket (rows) → splitcols (columns)
+  const rebuild = (
+    schema: AggSchema,
+    reordered: AggRow[]
+  ): AggRow[] => {
+    const m = schema === 'metric' ? reordered : metricRows;
+    const s = schema === 'split' ? reordered : splitRows;
+    const b = schema === 'bucket' ? reordered : bucketRows;
+    const sc = schema === 'splitcols' ? reordered : splitcolsRows;
+    return [...m, ...s, ...b, ...sc];
+  };
 
   const updateRow = (id: string, patch: Partial<AggRow>) =>
     onChange(value.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
   const removeRow = (id: string) => onChange(value.filter((r) => r.id !== id));
 
-  const reorderSection = (
-    schema: AggSchema,
-    source: number,
-    destination: number
-  ) => {
+  const reorderSection = (schema: AggSchema, source: number, destination: number) => {
     const section = value.filter((r) => r.schema === schema);
     const [moved] = section.splice(source, 1);
     section.splice(destination, 0, moved);
-    // Reconstruct: metrics → buckets → others (split/splitcols added in later steps)
-    const metrics = (schema === 'metric' ? section : value.filter((r) => r.schema === 'metric'));
-    const buckets = (schema === 'bucket' ? section : value.filter((r) => r.schema === 'bucket'));
-    onChange([...metrics, ...buckets, ...otherRows]);
+    onChange(rebuild(schema, section));
   };
 
   const addRow = (schema: AggSchema) => {
     const newRow = schema === 'metric' ? makeMetricRow() : makeBucketRow(schema);
-    const metrics = value.filter((r) => r.schema === 'metric');
-    const buckets = value.filter((r) => r.schema === 'bucket');
-    const others = value.filter((r) => r.schema !== 'metric' && r.schema !== 'bucket');
-    if (schema === 'metric') onChange([...metrics, newRow, ...buckets, ...others]);
-    else onChange([...metrics, ...buckets, newRow, ...others]);
+    const section = [...value.filter((r) => r.schema === schema), newRow];
+    onChange(rebuild(schema, section));
   };
 
-  const onMetricDragEnd = ({ source, destination }: DropResult) => {
+  const onDragEnd = (schema: AggSchema) => ({ source, destination }: DropResult) => {
     if (!source || !destination || source.index === destination.index) return;
-    reorderSection('metric', source.index, destination.index);
-  };
-
-  const onBucketDragEnd = ({ source, destination }: DropResult) => {
-    if (!source || !destination || source.index === destination.index) return;
-    reorderSection('bucket', source.index, destination.index);
+    reorderSection(schema, source.index, destination.index);
   };
 
   return (
@@ -499,7 +509,26 @@ export const AggConfigsEditor: React.FC<AggConfigsEditorProps> = ({
         addLabel={i18n.translate('enhancedTable2.aggEditor.addMetric', { defaultMessage: 'Add metric' })}
         dataView={dataView}
         onAdd={() => addRow('metric')}
-        onDragEnd={onMetricDragEnd}
+        onDragEnd={onDragEnd('metric')}
+        onChangeRow={updateRow}
+        onRemoveRow={removeRow}
+      />
+
+      <EuiSpacer size="m" />
+
+      <AggSection
+        title={i18n.translate('enhancedTable2.aggEditor.splitTableTitle', { defaultMessage: 'Split table' })}
+        droppableId="split"
+        rows={splitRows}
+        typeOptions={BUCKET_TYPES}
+        metricRows={metricRows}
+        minRows={0}
+        maxRows={1}
+        emptyLabel={i18n.translate('enhancedTable2.aggEditor.noSplitTable', { defaultMessage: 'No split table configured.' })}
+        addLabel={i18n.translate('enhancedTable2.aggEditor.addSplitTable', { defaultMessage: 'Add split table' })}
+        dataView={dataView}
+        onAdd={() => addRow('split')}
+        onDragEnd={onDragEnd('split')}
         onChangeRow={updateRow}
         onRemoveRow={removeRow}
       />
@@ -517,7 +546,27 @@ export const AggConfigsEditor: React.FC<AggConfigsEditorProps> = ({
         addLabel={i18n.translate('enhancedTable2.aggEditor.addSplitRow', { defaultMessage: 'Add split row' })}
         dataView={dataView}
         onAdd={() => addRow('bucket')}
-        onDragEnd={onBucketDragEnd}
+        onDragEnd={onDragEnd('bucket')}
+        onChangeRow={updateRow}
+        onRemoveRow={removeRow}
+      />
+
+      <EuiSpacer size="m" />
+
+      <AggSection
+        title={i18n.translate('enhancedTable2.aggEditor.splitColsTitle', { defaultMessage: 'Split columns' })}
+        droppableId="splitcols"
+        rows={splitcolsRows}
+        typeOptions={BUCKET_TYPES}
+        metricRows={metricRows}
+        minRows={0}
+        maxRows={1}
+        emptyLabel={i18n.translate('enhancedTable2.aggEditor.noSplitCols', { defaultMessage: 'No split columns configured.' })}
+        addLabel={i18n.translate('enhancedTable2.aggEditor.addSplitCol', { defaultMessage: 'Add split columns' })}
+        hint={i18n.translate('enhancedTable2.aggEditor.splitColsHint', { defaultMessage: 'This bucket must be the last one.' })}
+        dataView={dataView}
+        onAdd={() => addRow('splitcols')}
+        onDragEnd={onDragEnd('splitcols')}
         onChangeRow={updateRow}
         onRemoveRow={removeRow}
       />
