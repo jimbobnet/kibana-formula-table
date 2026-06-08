@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { i18n } from '@kbn/i18n';
 import {
   EuiButton,
   EuiButtonEmpty,
+  EuiCallOut,
   EuiComboBox,
   EuiComboBoxOptionOption,
   EuiFlyout,
@@ -24,6 +25,7 @@ import { EnhancedTableOptions } from '../components/editor/enhanced_table_option
 import { DocumentTableData } from '../components/editor/document_table_data';
 import {
   AggConfigsEditor,
+  needsField,
   parseAggRowsFromConfig,
   serializeAggRows,
 } from '../components/editor/agg_configs_editor';
@@ -77,7 +79,24 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
     value: dv.id,
   }));
 
+  const errors = useMemo(() => {
+    const errs: string[] = [];
+    if (!localIndexId) {
+      errs.push(i18n.translate('enhancedTable2.editFlyout.errorNoDataView', { defaultMessage: 'A data view must be selected.' }));
+    }
+    localAggRows.forEach((row, i) => {
+      if (row.enabled && needsField(row.type) && !row.params.field) {
+        errs.push(i18n.translate('enhancedTable2.editFlyout.errorAggNoField', {
+          defaultMessage: 'Aggregation #{num} ({type}) requires a field.',
+          values: { num: i + 1, type: row.type },
+        }));
+      }
+    });
+    return errs;
+  }, [localIndexId, localAggRows]);
+
   const handleSave = () => {
+    if (errors.length > 0) return;
     const { aggConfigs: serializedAggConfigs, schemas: serializedSchemas } =
       serializeAggRows(localAggRows);
     onSave({
@@ -143,6 +162,21 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
       </EuiFlyoutBody>
 
       <EuiFlyoutFooter>
+        {errors.length > 0 && (
+          <>
+            <EuiCallOut
+              color="danger"
+              iconType="error"
+              size="s"
+              title={i18n.translate('enhancedTable2.editFlyout.validationTitle', { defaultMessage: 'Fix the following before applying:' })}
+            >
+              <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
+                {errors.map((msg, idx) => <li key={idx}>{msg}</li>)}
+              </ul>
+            </EuiCallOut>
+            <EuiSpacer size="s" />
+          </>
+        )}
         <EuiFlexGroup justifyContent="spaceBetween">
           <EuiFlexItem grow={false}>
             <EuiButtonEmpty onClick={onClose}>
@@ -150,7 +184,7 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
             </EuiButtonEmpty>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <EuiButton fill onClick={handleSave}>
+            <EuiButton fill onClick={handleSave} isDisabled={errors.length > 0}>
               {i18n.translate('enhancedTable2.editFlyout.apply', { defaultMessage: 'Apply changes' })}
             </EuiButton>
           </EuiFlexItem>
@@ -198,7 +232,24 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
     value: dv.id,
   }));
 
+  const errors = useMemo(() => {
+    const errs: string[] = [];
+    if (!localIndexId) {
+      errs.push(i18n.translate('enhancedTable2.editFlyout.errorNoDataView', { defaultMessage: 'A data view must be selected.' }));
+    }
+    (localParams.fieldColumns ?? []).forEach((col, i) => {
+      if (col.enabled !== false && !col.field?.name) {
+        errs.push(i18n.translate('enhancedTable2.editFlyout.errorColumnNoField', {
+          defaultMessage: 'Column "{label}" has no field selected.',
+          values: { label: col.label || `#${i + 1}` },
+        }));
+      }
+    });
+    return errs;
+  }, [localIndexId, localParams.fieldColumns]);
+
   const handleSave = () => {
+    if (errors.length > 0) return;
     onSave({ indexId: localIndexId, params: localParams });
     onClose();
   };
@@ -258,6 +309,21 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
       </EuiFlyoutBody>
 
       <EuiFlyoutFooter>
+        {errors.length > 0 && (
+          <>
+            <EuiCallOut
+              color="danger"
+              iconType="error"
+              size="s"
+              title={i18n.translate('enhancedTable2.editFlyout.validationTitle', { defaultMessage: 'Fix the following before applying:' })}
+            >
+              <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
+                {errors.map((msg, idx) => <li key={idx}>{msg}</li>)}
+              </ul>
+            </EuiCallOut>
+            <EuiSpacer size="s" />
+          </>
+        )}
         <EuiFlexGroup justifyContent="spaceBetween">
           <EuiFlexItem grow={false}>
             <EuiButtonEmpty onClick={onClose}>
@@ -265,7 +331,7 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
             </EuiButtonEmpty>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
-            <EuiButton fill onClick={handleSave}>
+            <EuiButton fill onClick={handleSave} isDisabled={errors.length > 0}>
               {i18n.translate('enhancedTable2.editFlyout.apply', { defaultMessage: 'Apply changes' })}
             </EuiButton>
           </EuiFlexItem>

@@ -136,7 +136,7 @@ const ORDER_OPTIONS = [
 
 // ── field helpers ─────────────────────────────────────────────────────────────
 
-function needsField(type: string): boolean {
+export function needsField(type: string): boolean {
   return type !== 'count';
 }
 
@@ -146,8 +146,10 @@ function getFieldOptions(
 ): Array<{ value: string; text: string }> {
   const fields = (dataView?.fields ?? []).filter((f: any) => f.aggregatable);
   let filtered: any[] = fields;
-  if (['sum', 'avg', 'min', 'max', 'histogram'].includes(type)) {
+  if (['sum', 'avg', 'histogram'].includes(type)) {
     filtered = fields.filter((f: any) => f.type === 'number');
+  } else if (['min', 'max'].includes(type)) {
+    filtered = fields.filter((f: any) => f.type === 'number' || f.type === 'date');
   } else if (['date_histogram', 'date_range'].includes(type)) {
     filtered = fields.filter((f: any) => f.type === 'date');
   }
