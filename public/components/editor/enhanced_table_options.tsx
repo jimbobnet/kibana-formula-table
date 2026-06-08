@@ -92,7 +92,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
         <EuiFlexGroup justifyContent="spaceBetween" alignItems="center">
           <EuiFlexItem>
             <EuiTitle size="xs">
-              <h3>{i18n.translate('enhancedTable2.options.computedColumns', { defaultMessage: 'Computed columns' })}</h3>
+              <h3>{i18n.translate('formulaTable.options.computedColumns', { defaultMessage: 'Computed columns' })}</h3>
             </EuiTitle>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
@@ -101,7 +101,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
               iconType="plusInCircle"
               onClick={() => setValue('computedColumns', [...(stateParams.computedColumns ?? []), { ...NEW_COMPUTED_COLUMN }])}
             >
-              {i18n.translate('enhancedTable2.options.addComputedColumn', { defaultMessage: 'Add column' })}
+              {i18n.translate('formulaTable.options.addComputedColumn', { defaultMessage: 'Add column' })}
             </EuiButtonEmpty>
           </EuiFlexItem>
         </EuiFlexGroup>
@@ -138,13 +138,13 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
       {/* Enhanced Settings */}
       <EuiPanel paddingSize="s">
         <EuiTitle size="xs">
-          <h3>{i18n.translate('enhancedTable2.options.rowFormulas', { defaultMessage: 'Enhanced settings' })}</h3>
+          <h3>{i18n.translate('formulaTable.options.rowFormulas', { defaultMessage: 'Enhanced settings' })}</h3>
         </EuiTitle>
         <EuiSpacer size="s" />
 
         <EuiFormRow
-          label={i18n.translate('enhancedTable2.options.rowComputedFilter', { defaultMessage: 'Row filter formula' })}
-          helpText={i18n.translate('enhancedTable2.options.rowComputedFilterHelp', { defaultMessage: 'Truthy = show row. Variables: col0…colN, formattedCol0…, totalHits. Example: col0 > 10' })}
+          label={i18n.translate('formulaTable.options.rowComputedFilter', { defaultMessage: 'Row filter formula' })}
+          helpText={i18n.translate('formulaTable.options.rowComputedFilterHelp', { defaultMessage: 'Truthy = show row. Variables: col0…colN, formattedCol0…, totalHits. Example: col0 > 10' })}
           display="rowCompressed"
         >
           <EuiFieldText
@@ -157,8 +157,8 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
         <EuiSpacer size="s" />
 
         <EuiFormRow
-          label={i18n.translate('enhancedTable2.options.rowComputedCss', { defaultMessage: 'Row CSS formula' })}
-          helpText={i18n.translate('enhancedTable2.options.rowComputedCssHelp', { defaultMessage: 'Returns CSS string applied to the entire row. Example: col0 < 0 ? "background-color: #fdd" : ""' })}
+          label={i18n.translate('formulaTable.options.rowComputedCss', { defaultMessage: 'Row CSS formula' })}
+          helpText={i18n.translate('formulaTable.options.rowComputedCssHelp', { defaultMessage: 'Returns CSS string applied to the entire row. Example: col0 < 0 ? "background-color: #fdd" : ""' })}
           display="rowCompressed"
         >
           <EuiFieldText
@@ -172,7 +172,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
         <EuiSpacer size="m" />
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.stripedRows', { defaultMessage: 'Striped rows' })}
+          label={i18n.translate('formulaTable.options.stripedRows', { defaultMessage: 'Striped rows' })}
           checked={stateParams.stripedRows}
           onChange={(e) => setValue('stripedRows', e.target.checked)}
         />
@@ -180,14 +180,14 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
 
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.addRowNumberColumn', { defaultMessage: 'Add row number column' })}
+          label={i18n.translate('formulaTable.options.addRowNumberColumn', { defaultMessage: 'Add row number column' })}
           checked={stateParams.addRowNumberColumn}
           onChange={(e) => setValue('addRowNumberColumn', e.target.checked)}
         />
         <EuiSpacer size="m" />
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.hideExportLinks', { defaultMessage: 'Hide CSV export links' })}
+          label={i18n.translate('formulaTable.options.hideExportLinks', { defaultMessage: 'Hide CSV export links' })}
           checked={stateParams.hideExportLinks ?? false}
           onChange={(e) => setValue('hideExportLinks', e.target.checked)}
         />
@@ -195,7 +195,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
 
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.csvExportWithTotal', { defaultMessage: 'CSV export with total row' })}
+          label={i18n.translate('formulaTable.options.csvExportWithTotal', { defaultMessage: 'CSV export with total row' })}
           checked={stateParams.csvExportWithTotal ?? false}
           disabled={!stateParams.showTotal}
           onChange={(e) => setValue('csvExportWithTotal', e.target.checked)}
@@ -206,7 +206,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
           <EuiFlexItem grow={false}>
             <EuiSwitch
               compressed
-              label={i18n.translate('enhancedTable2.options.csvFullExport', { defaultMessage: 'Full CSV export' })}
+              label={i18n.translate('formulaTable.options.csvFullExport', { defaultMessage: 'Full CSV export' })}
               checked={stateParams.csvFullExport ?? false}
               disabled={
                 (stateParams.computedColumns ?? []).length > 0 ||
@@ -220,7 +220,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiIconTip
-              content={i18n.translate('enhancedTable2.options.csvFullExportHelp', {
+              content={i18n.translate('formulaTable.options.csvFullExportHelp', {
                 defaultMessage: "If enabled, CSV export will download all data without applying computed columns, row filter, hidden columns, or row number. Not compatible with 'CSV export with total row' or 'Add row number column'.",
               })}
               position="right"
@@ -230,15 +230,15 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
         <EuiSpacer size="m" />
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.sortSplitCols', { defaultMessage: 'Sort split tables' })}
+          label={i18n.translate('formulaTable.options.sortSplitCols', { defaultMessage: 'Sort split tables' })}
           checked={(stateParams as any).sortSplitCols ?? false}
           onChange={(e) => setValue('sortSplitCols' as any, e.target.checked)}
         />
         <EuiSpacer size="m" />
 
         <EuiFormRow
-          label={i18n.translate('enhancedTable2.options.hiddenColumns', { defaultMessage: 'Hidden columns' })}
-          helpText={i18n.translate('enhancedTable2.options.hiddenColumnsHelp', { defaultMessage: 'Comma-separated column indices to hide (e.g. 0,2)' })}
+          label={i18n.translate('formulaTable.options.hiddenColumns', { defaultMessage: 'Hidden columns' })}
+          helpText={i18n.translate('formulaTable.options.hiddenColumnsHelp', { defaultMessage: 'Comma-separated column indices to hide (e.g. 0,2)' })}
           display="rowCompressed"
         >
           <EuiFieldText
@@ -254,19 +254,19 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
       {/* BASIC SETTINGS */}
       <EuiPanel paddingSize="s">
         <EuiTitle size="xs">
-          <h3>{i18n.translate('enhancedTable2.options.basicSettings', { defaultMessage: 'Basic settings' })}</h3>
+          <h3>{i18n.translate('formulaTable.options.basicSettings', { defaultMessage: 'Basic settings' })}</h3>
         </EuiTitle>
         <EuiSpacer size="s" />
 
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.hideToolbar', { defaultMessage: 'Show toolbar (columns, sort, export)' })}
+          label={i18n.translate('formulaTable.options.hideToolbar', { defaultMessage: 'Show toolbar (columns, sort, export)' })}
           checked={!stateParams.hideToolbar}
           onChange={(e) => setValue('hideToolbar', !e.target.checked)}
         />
         <EuiSpacer size="s" />
 
-        <EuiFormRow label={i18n.translate('enhancedTable2.options.perPage', { defaultMessage: 'Rows per page' })} display="rowCompressed">
+        <EuiFormRow label={i18n.translate('formulaTable.options.perPage', { defaultMessage: 'Rows per page' })} display="rowCompressed">
           <EuiFieldNumber
             compressed
             min={1}
@@ -281,14 +281,14 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
           <>
             <EuiSwitch
               compressed
-              label={i18n.translate('enhancedTable2.options.showPartialRows', { defaultMessage: 'Show partial rows' })}
+              label={i18n.translate('formulaTable.options.showPartialRows', { defaultMessage: 'Show partial rows' })}
               checked={(stateParams as any).showPartialRows ?? false}
               onChange={(e) => setValue('showPartialRows' as any, e.target.checked)}
             />
             <EuiSpacer size="s" />
             <EuiSwitch
               compressed
-              label={i18n.translate('enhancedTable2.options.showMetricsAtAllLevels', { defaultMessage: 'Show metrics at all levels' })}
+              label={i18n.translate('formulaTable.options.showMetricsAtAllLevels', { defaultMessage: 'Show metrics at all levels' })}
               checked={(stateParams as any).showMetricsAtAllLevels ?? false}
               onChange={(e) => setValue('showMetricsAtAllLevels' as any, e.target.checked)}
             />
@@ -298,7 +298,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
 
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.showTotal', { defaultMessage: 'Show column totals' })}
+          label={i18n.translate('formulaTable.options.showTotal', { defaultMessage: 'Show column totals' })}
           checked={stateParams.showTotal}
           onChange={(e) => setValue('showTotal', e.target.checked)}
         />
@@ -306,7 +306,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
         {stateParams.showTotal && (
           <>
             <EuiSpacer size="s" />
-            <EuiFormRow label={i18n.translate('enhancedTable2.options.totalFunc', { defaultMessage: 'Total function' })} display="rowCompressed">
+            <EuiFormRow label={i18n.translate('formulaTable.options.totalFunc', { defaultMessage: 'Total function' })} display="rowCompressed">
               <EuiSelect
                 compressed
                 options={TOTAL_FUNC_OPTIONS}
@@ -316,13 +316,13 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
             </EuiFormRow>
             <EuiSpacer size="s" />
             <EuiFormRow
-              label={i18n.translate('enhancedTable2.options.totalLabel', { defaultMessage: 'Total row label' })}
-              helpText={i18n.translate('enhancedTable2.options.totalLabelHelp', { defaultMessage: 'Label shown in the first column of the totals row' })}
+              label={i18n.translate('formulaTable.options.totalLabel', { defaultMessage: 'Total row label' })}
+              helpText={i18n.translate('formulaTable.options.totalLabelHelp', { defaultMessage: 'Label shown in the first column of the totals row' })}
               display="rowCompressed"
             >
               <EuiFieldText
                 compressed
-                placeholder={i18n.translate('enhancedTable2.options.totalLabelPlaceholder', { defaultMessage: 'Total' })}
+                placeholder={i18n.translate('formulaTable.options.totalLabelPlaceholder', { defaultMessage: 'Total' })}
                 value={stateParams.totalLabel ?? ''}
                 onChange={(e) => setValue('totalLabel', e.target.value)}
               />
@@ -335,13 +335,13 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
       {/* FILTER BAR */}
       <EuiPanel paddingSize="s">
         <EuiTitle size="xs">
-          <h3>{i18n.translate('enhancedTable2.options.filterBar', { defaultMessage: 'Filter bar' })}</h3>
+          <h3>{i18n.translate('formulaTable.options.filterBar', { defaultMessage: 'Filter bar' })}</h3>
         </EuiTitle>
         <EuiSpacer size="s" />
 
         <EuiSwitch
           compressed
-          label={i18n.translate('enhancedTable2.options.showFilterBar', { defaultMessage: 'Show filter bar' })}
+          label={i18n.translate('formulaTable.options.showFilterBar', { defaultMessage: 'Show filter bar' })}
           checked={stateParams.showFilterBar ?? false}
           onChange={(e) => setValue('showFilterBar', e.target.checked)}
         />
@@ -350,7 +350,7 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
           <>
             <EuiSpacer size="s" />
             <EuiFormRow
-              label={i18n.translate('enhancedTable2.options.filterBarWidth', { defaultMessage: 'Filter bar width' })}
+              label={i18n.translate('formulaTable.options.filterBarWidth', { defaultMessage: 'Filter bar width' })}
               display="rowCompressed"
             >
               <EuiFieldText
@@ -363,28 +363,28 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
             <EuiSpacer size="s" />
             <EuiSwitch
               compressed
-              label={i18n.translate('enhancedTable2.options.filterCaseSensitive', { defaultMessage: 'Case sensitive' })}
+              label={i18n.translate('formulaTable.options.filterCaseSensitive', { defaultMessage: 'Case sensitive' })}
               checked={stateParams.filterCaseSensitive ?? false}
               onChange={(e) => setValue('filterCaseSensitive', e.target.checked)}
             />
             <EuiSpacer size="s" />
             <EuiSwitch
               compressed
-              label={i18n.translate('enhancedTable2.options.filterTermsSeparately', { defaultMessage: 'Match all terms separately' })}
+              label={i18n.translate('formulaTable.options.filterTermsSeparately', { defaultMessage: 'Match all terms separately' })}
               checked={stateParams.filterTermsSeparately ?? false}
               onChange={(e) => setValue('filterTermsSeparately', e.target.checked)}
             />
             <EuiSpacer size="s" />
             <EuiSwitch
               compressed
-              label={i18n.translate('enhancedTable2.options.filterBarHideable', { defaultMessage: 'Filter bar hideable' })}
+              label={i18n.translate('formulaTable.options.filterBarHideable', { defaultMessage: 'Filter bar hideable' })}
               checked={stateParams.filterBarHideable ?? false}
               onChange={(e) => setValue('filterBarHideable', e.target.checked)}
             />
             <EuiSpacer size="s" />
             <EuiSwitch
               compressed
-              label={i18n.translate('enhancedTable2.options.filterHighlightResults', { defaultMessage: 'Highlight matching text' })}
+              label={i18n.translate('formulaTable.options.filterHighlightResults', { defaultMessage: 'Highlight matching text' })}
               checked={stateParams.filterHighlightResults ?? false}
               onChange={(e) => setValue('filterHighlightResults', e.target.checked)}
             />

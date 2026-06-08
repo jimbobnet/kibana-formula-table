@@ -70,14 +70,14 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
   return (
     <EuiAccordion
       id={`computed_col_${index}`}
-      buttonContent={column.label || i18n.translate('enhancedTable2.computedColumn.unnamed', { defaultMessage: 'Computed column {n}', values: { n: index + 1 } })}
+      buttonContent={column.label || i18n.translate('formulaTable.computedColumn.unnamed', { defaultMessage: 'Computed column {n}', values: { n: index + 1 } })}
       extraAction={
         <EuiFlexGroup alignItems="center" gutterSize="xs" responsive={false}>
           {dragHandleProps && (
             <EuiFlexItem grow={false}>
               <div
                 {...dragHandleProps}
-                aria-label={i18n.translate('enhancedTable2.computedColumn.dragToReorder', { defaultMessage: 'Drag to reorder' })}
+                aria-label={i18n.translate('formulaTable.computedColumn.dragToReorder', { defaultMessage: 'Drag to reorder' })}
               >
                 <EuiIcon type="grab" />
               </div>
@@ -88,8 +88,8 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
               iconType={column.enabled ? 'eye' : 'eyeClosed'}
               aria-label={
                 column.enabled
-                  ? i18n.translate('enhancedTable2.computedColumn.hideColumn', { defaultMessage: 'Hide column' })
-                  : i18n.translate('enhancedTable2.computedColumn.showColumn', { defaultMessage: 'Show column' })
+                  ? i18n.translate('formulaTable.computedColumn.hideColumn', { defaultMessage: 'Hide column' })
+                  : i18n.translate('formulaTable.computedColumn.showColumn', { defaultMessage: 'Show column' })
               }
               color={column.enabled ? 'text' : 'subdued'}
               onClick={() => update({ enabled: !column.enabled })}
@@ -98,7 +98,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
           <EuiFlexItem grow={false}>
             <EuiButtonIcon
               iconType="cross"
-              aria-label={i18n.translate('enhancedTable2.computedColumn.removeColumn', { defaultMessage: 'Remove column' })}
+              aria-label={i18n.translate('formulaTable.computedColumn.removeColumn', { defaultMessage: 'Remove column' })}
               color="danger"
               onClick={onRemove}
             />
@@ -109,13 +109,13 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
     >
       <EuiFlexGroup direction="column" gutterSize="s">
         <EuiFlexItem>
-          <EuiFormRow label={i18n.translate('enhancedTable2.computedColumn.label', { defaultMessage: 'Label' })} display="rowCompressed">
+          <EuiFormRow label={i18n.translate('formulaTable.computedColumn.label', { defaultMessage: 'Label' })} display="rowCompressed">
             <EuiFieldText compressed value={column.label} onChange={(e) => update({ label: e.target.value })} />
           </EuiFormRow>
         </EuiFlexItem>
         <EuiFlexItem>
           <EuiFormRow
-            label={i18n.translate('enhancedTable2.computedColumn.formula', { defaultMessage: 'Formula' })}
+            label={i18n.translate('formulaTable.computedColumn.formula', { defaultMessage: 'Formula' })}
             helpText="Use col0, col1, formattedCol0, cell(-1, 0), now() to reference data"
             display="rowCompressed"
           >
@@ -123,7 +123,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
           </EuiFormRow>
         </EuiFlexItem>
         <EuiFlexItem>
-          <EuiFormRow label={i18n.translate('enhancedTable2.computedColumn.format', { defaultMessage: 'Format' })} display="rowCompressed">
+          <EuiFormRow label={i18n.translate('formulaTable.computedColumn.format', { defaultMessage: 'Format' })} display="rowCompressed">
             <EuiSelect
               compressed
               options={FORMAT_OPTIONS}
@@ -225,16 +225,16 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
 
         <EuiFlexItem>
           <EuiFormRow
-            label={i18n.translate('enhancedTable2.computedColumn.alignment', { defaultMessage: 'Text alignment' })}
+            label={i18n.translate('formulaTable.computedColumn.alignment', { defaultMessage: 'Text alignment' })}
             display="rowCompressed"
           >
             <EuiSelect
               compressed
               options={[
-                { value: 'left',    text: i18n.translate('enhancedTable2.computedColumn.alignLeft',    { defaultMessage: 'Left' }) },
-                { value: 'center',  text: i18n.translate('enhancedTable2.computedColumn.alignCenter',  { defaultMessage: 'Center' }) },
-                { value: 'right',   text: i18n.translate('enhancedTable2.computedColumn.alignRight',   { defaultMessage: 'Right' }) },
-                { value: 'justify', text: i18n.translate('enhancedTable2.computedColumn.alignJustify', { defaultMessage: 'Justify' }) },
+                { value: 'left',    text: i18n.translate('formulaTable.computedColumn.alignLeft',    { defaultMessage: 'Left' }) },
+                { value: 'center',  text: i18n.translate('formulaTable.computedColumn.alignCenter',  { defaultMessage: 'Center' }) },
+                { value: 'right',   text: i18n.translate('formulaTable.computedColumn.alignRight',   { defaultMessage: 'Right' }) },
+                { value: 'justify', text: i18n.translate('formulaTable.computedColumn.alignJustify', { defaultMessage: 'Justify' }) },
               ]}
               value={column.alignment}
               onChange={(e) => update({ alignment: e.target.value as ComputedColumn['alignment'] })}
@@ -247,7 +247,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
             <EuiFlexItem>
               <EuiSwitch
                 compressed
-                label={i18n.translate('enhancedTable2.computedColumn.applyAlignmentOnTitle', { defaultMessage: 'Apply alignment on title' })}
+                label={i18n.translate('formulaTable.computedColumn.applyAlignmentOnTitle', { defaultMessage: 'Apply alignment on title' })}
                 checked={column.applyAlignmentOnTitle}
                 onChange={(e) => update({ applyAlignmentOnTitle: e.target.checked })}
               />
@@ -255,7 +255,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
             <EuiFlexItem>
               <EuiSwitch
                 compressed
-                label={i18n.translate('enhancedTable2.computedColumn.applyAlignmentOnTotal', { defaultMessage: 'Apply alignment on total' })}
+                label={i18n.translate('formulaTable.computedColumn.applyAlignmentOnTotal', { defaultMessage: 'Apply alignment on total' })}
                 checked={column.applyAlignmentOnTotal}
                 onChange={(e) => update({ applyAlignmentOnTotal: e.target.checked })}
               />
@@ -267,7 +267,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
           <EuiSpacer size="xs" />
           <EuiSwitch
             compressed
-            label={i18n.translate('enhancedTable2.computedColumn.applyTemplate', { defaultMessage: 'Apply Handlebars template' })}
+            label={i18n.translate('formulaTable.computedColumn.applyTemplate', { defaultMessage: 'Apply Handlebars template' })}
             checked={column.applyTemplate ?? false}
             onChange={(e) => update({ applyTemplate: e.target.checked })}
           />
@@ -277,7 +277,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
           <>
             <EuiFlexItem>
               <EuiFormRow
-                label={i18n.translate('enhancedTable2.computedColumn.template', { defaultMessage: 'Template' })}
+                label={i18n.translate('formulaTable.computedColumn.template', { defaultMessage: 'Template' })}
                 helpText="Variables: {{value}}, {{rawValue}}, {{col0}}, {{formattedCol0}}, {{total0}}, {{totalHits}}, {{encodeURIComponent col0}}"
                 display="rowCompressed"
               >
@@ -293,7 +293,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
             <EuiFlexItem>
               <EuiSwitch
                 compressed
-                label={i18n.translate('enhancedTable2.computedColumn.applyTemplateOnTotal', { defaultMessage: 'Apply template on total row' })}
+                label={i18n.translate('formulaTable.computedColumn.applyTemplateOnTotal', { defaultMessage: 'Apply template on total row' })}
                 checked={column.applyTemplateOnTotal ?? false}
                 onChange={(e) => update({ applyTemplateOnTotal: e.target.checked })}
               />
@@ -303,7 +303,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
 
         <EuiFlexItem>
           <EuiFormRow
-            label={i18n.translate('enhancedTable2.computedColumn.cellComputedCss', { defaultMessage: 'Cell CSS formula' })}
+            label={i18n.translate('formulaTable.computedColumn.cellComputedCss', { defaultMessage: 'Cell CSS formula' })}
             helpText="Returns CSS string applied to this cell. Variables: value, rawValue, col0…colN. Example: value < 0 ? &quot;color: red&quot; : &quot;&quot;"
             display="rowCompressed"
           >
@@ -320,10 +320,10 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
           <EuiFormRow
             label={
               <>
-                {i18n.translate('enhancedTable2.computedColumn.customColumnPosition', { defaultMessage: 'Custom column position' })}
+                {i18n.translate('formulaTable.computedColumn.customColumnPosition', { defaultMessage: 'Custom column position' })}
                 {' '}
                 <EuiIconTip
-                  content={i18n.translate('enhancedTable2.computedColumn.customColumnPositionHelp', {
+                  content={i18n.translate('formulaTable.computedColumn.customColumnPositionHelp', {
                     defaultMessage: "You can change here the computed column target position to a previous position. For example, '0' will move this column at first position. Despite 'target' column position, formula can reference any previous column to the 'declared' column position, including classic and computed columns.",
                   })}
                   position="right"
@@ -335,7 +335,7 @@ export const ComputedColumnEditorItem: React.FC<ComputedColumnEditorProps> = ({
             <EuiFieldNumber
               compressed
               min={0}
-              placeholder={i18n.translate('enhancedTable2.computedColumn.customColumnPositionPlaceholder', { defaultMessage: '(default)' })}
+              placeholder={i18n.translate('formulaTable.computedColumn.customColumnPositionPlaceholder', { defaultMessage: '(default)' })}
               value={column.customColumnPosition ?? ''}
               onChange={(e) => {
                 const v = parseInt(e.target.value, 10);

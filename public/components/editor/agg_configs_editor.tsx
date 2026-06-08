@@ -101,41 +101,41 @@ function makeBucketRow(schema: AggSchema): AggRow {
 // ── static option lists ───────────────────────────────────────────────────────
 
 const METRIC_TYPES = [
-  { value: 'count', text: i18n.translate('enhancedTable2.aggEditor.type.count', { defaultMessage: 'Count' }) },
-  { value: 'sum', text: i18n.translate('enhancedTable2.aggEditor.type.sum', { defaultMessage: 'Sum' }) },
-  { value: 'avg', text: i18n.translate('enhancedTable2.aggEditor.type.avg', { defaultMessage: 'Average' }) },
-  { value: 'min', text: i18n.translate('enhancedTable2.aggEditor.type.min', { defaultMessage: 'Min' }) },
-  { value: 'max', text: i18n.translate('enhancedTable2.aggEditor.type.max', { defaultMessage: 'Max' }) },
-  { value: 'cardinality', text: i18n.translate('enhancedTable2.aggEditor.type.cardinality', { defaultMessage: 'Unique count' }) },
-  { value: 'top_hits', text: i18n.translate('enhancedTable2.aggEditor.type.topHits', { defaultMessage: 'Top hit' }) },
+  { value: 'count', text: i18n.translate('formulaTable.aggEditor.type.count', { defaultMessage: 'Count' }) },
+  { value: 'sum', text: i18n.translate('formulaTable.aggEditor.type.sum', { defaultMessage: 'Sum' }) },
+  { value: 'avg', text: i18n.translate('formulaTable.aggEditor.type.avg', { defaultMessage: 'Average' }) },
+  { value: 'min', text: i18n.translate('formulaTable.aggEditor.type.min', { defaultMessage: 'Min' }) },
+  { value: 'max', text: i18n.translate('formulaTable.aggEditor.type.max', { defaultMessage: 'Max' }) },
+  { value: 'cardinality', text: i18n.translate('formulaTable.aggEditor.type.cardinality', { defaultMessage: 'Unique count' }) },
+  { value: 'top_hits', text: i18n.translate('formulaTable.aggEditor.type.topHits', { defaultMessage: 'Top hit' }) },
 ];
 
 const BUCKET_TYPES = [
-  { value: 'terms', text: i18n.translate('enhancedTable2.aggEditor.type.terms', { defaultMessage: 'Terms' }) },
-  { value: 'date_histogram', text: i18n.translate('enhancedTable2.aggEditor.type.dateHistogram', { defaultMessage: 'Date histogram' }) },
-  { value: 'histogram', text: i18n.translate('enhancedTable2.aggEditor.type.histogram', { defaultMessage: 'Histogram' }) },
-  { value: 'significant_terms', text: i18n.translate('enhancedTable2.aggEditor.type.significantTerms', { defaultMessage: 'Significant terms' }) },
-  { value: 'ip_prefix', text: i18n.translate('enhancedTable2.aggEditor.type.ipPrefix', { defaultMessage: 'IP prefix' }) },
+  { value: 'terms', text: i18n.translate('formulaTable.aggEditor.type.terms', { defaultMessage: 'Terms' }) },
+  { value: 'date_histogram', text: i18n.translate('formulaTable.aggEditor.type.dateHistogram', { defaultMessage: 'Date histogram' }) },
+  { value: 'histogram', text: i18n.translate('formulaTable.aggEditor.type.histogram', { defaultMessage: 'Histogram' }) },
+  { value: 'significant_terms', text: i18n.translate('formulaTable.aggEditor.type.significantTerms', { defaultMessage: 'Significant terms' }) },
+  { value: 'ip_prefix', text: i18n.translate('formulaTable.aggEditor.type.ipPrefix', { defaultMessage: 'IP prefix' }) },
 ];
 
 const DATE_INTERVAL_OPTIONS = [
-  { value: 'auto', text: i18n.translate('enhancedTable2.aggEditor.interval.auto', { defaultMessage: 'Auto' }) },
-  { value: '1m', text: i18n.translate('enhancedTable2.aggEditor.interval.1m', { defaultMessage: '1 minute' }) },
-  { value: '5m', text: i18n.translate('enhancedTable2.aggEditor.interval.5m', { defaultMessage: '5 minutes' }) },
-  { value: '10m', text: i18n.translate('enhancedTable2.aggEditor.interval.10m', { defaultMessage: '10 minutes' }) },
-  { value: '30m', text: i18n.translate('enhancedTable2.aggEditor.interval.30m', { defaultMessage: '30 minutes' }) },
-  { value: '1h', text: i18n.translate('enhancedTable2.aggEditor.interval.1h', { defaultMessage: '1 hour' }) },
-  { value: '3h', text: i18n.translate('enhancedTable2.aggEditor.interval.3h', { defaultMessage: '3 hours' }) },
-  { value: '12h', text: i18n.translate('enhancedTable2.aggEditor.interval.12h', { defaultMessage: '12 hours' }) },
-  { value: '1d', text: i18n.translate('enhancedTable2.aggEditor.interval.1d', { defaultMessage: '1 day' }) },
-  { value: '1w', text: i18n.translate('enhancedTable2.aggEditor.interval.1w', { defaultMessage: '1 week' }) },
-  { value: '1M', text: i18n.translate('enhancedTable2.aggEditor.interval.1M', { defaultMessage: '1 month' }) },
-  { value: '1y', text: i18n.translate('enhancedTable2.aggEditor.interval.1y', { defaultMessage: '1 year' }) },
+  { value: 'auto', text: i18n.translate('formulaTable.aggEditor.interval.auto', { defaultMessage: 'Auto' }) },
+  { value: '1m', text: i18n.translate('formulaTable.aggEditor.interval.1m', { defaultMessage: '1 minute' }) },
+  { value: '5m', text: i18n.translate('formulaTable.aggEditor.interval.5m', { defaultMessage: '5 minutes' }) },
+  { value: '10m', text: i18n.translate('formulaTable.aggEditor.interval.10m', { defaultMessage: '10 minutes' }) },
+  { value: '30m', text: i18n.translate('formulaTable.aggEditor.interval.30m', { defaultMessage: '30 minutes' }) },
+  { value: '1h', text: i18n.translate('formulaTable.aggEditor.interval.1h', { defaultMessage: '1 hour' }) },
+  { value: '3h', text: i18n.translate('formulaTable.aggEditor.interval.3h', { defaultMessage: '3 hours' }) },
+  { value: '12h', text: i18n.translate('formulaTable.aggEditor.interval.12h', { defaultMessage: '12 hours' }) },
+  { value: '1d', text: i18n.translate('formulaTable.aggEditor.interval.1d', { defaultMessage: '1 day' }) },
+  { value: '1w', text: i18n.translate('formulaTable.aggEditor.interval.1w', { defaultMessage: '1 week' }) },
+  { value: '1M', text: i18n.translate('formulaTable.aggEditor.interval.1M', { defaultMessage: '1 month' }) },
+  { value: '1y', text: i18n.translate('formulaTable.aggEditor.interval.1y', { defaultMessage: '1 year' }) },
 ];
 
 const ORDER_OPTIONS = [
-  { value: 'desc', text: i18n.translate('enhancedTable2.aggEditor.order.desc', { defaultMessage: 'Descending' }) },
-  { value: 'asc', text: i18n.translate('enhancedTable2.aggEditor.order.asc', { defaultMessage: 'Ascending' }) },
+  { value: 'desc', text: i18n.translate('formulaTable.aggEditor.order.desc', { defaultMessage: 'Descending' }) },
+  { value: 'asc', text: i18n.translate('formulaTable.aggEditor.order.asc', { defaultMessage: 'Ascending' }) },
 ];
 
 // ── field helpers ─────────────────────────────────────────────────────────────
@@ -158,7 +158,7 @@ function getFieldOptions(
     filtered = fields.filter((f: any) => f.type === 'date');
   }
   return [
-    { value: '', text: i18n.translate('enhancedTable2.aggEditor.selectField', { defaultMessage: '— Select field —' }) },
+    { value: '', text: i18n.translate('formulaTable.aggEditor.selectField', { defaultMessage: '— Select field —' }) },
     ...filtered.map((f: any) => ({ value: f.name, text: f.name })),
   ];
 }
@@ -203,8 +203,8 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
   };
 
   const orderByOptions = [
-    { value: '_count', text: i18n.translate('enhancedTable2.aggEditor.orderByCount', { defaultMessage: 'Document count' }) },
-    { value: '_key', text: i18n.translate('enhancedTable2.aggEditor.orderByKey', { defaultMessage: 'Alphabetical' }) },
+    { value: '_count', text: i18n.translate('formulaTable.aggEditor.orderByCount', { defaultMessage: 'Document count' }) },
+    { value: '_key', text: i18n.translate('formulaTable.aggEditor.orderByKey', { defaultMessage: 'Alphabetical' }) },
     ...metricRows.map((m) => ({
       value: m.id,
       text: `${m.type}${(m.params.field as string) ? `(${m.params.field})` : ''}`,
@@ -217,7 +217,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
         <EuiFlexItem grow={false}>
           <div
             {...provided.dragHandleProps}
-            aria-label={i18n.translate('enhancedTable2.aggEditor.drag', { defaultMessage: 'Drag to reorder' })}
+            aria-label={i18n.translate('formulaTable.aggEditor.drag', { defaultMessage: 'Drag to reorder' })}
             style={{ paddingTop: 22 }}
           >
             <EuiIcon type="grab" />
@@ -227,7 +227,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
         {/* Agg type */}
         <EuiFlexItem style={{ minWidth: 150 }}>
           <EuiFormRow
-            label={i18n.translate('enhancedTable2.aggEditor.aggregation', { defaultMessage: 'Aggregation' })}
+            label={i18n.translate('formulaTable.aggEditor.aggregation', { defaultMessage: 'Aggregation' })}
             display="rowCompressed"
           >
             <EuiSelect
@@ -243,7 +243,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
         {needsField(row.type) && (
           <EuiFlexItem style={{ minWidth: 160 }}>
             <EuiFormRow
-              label={i18n.translate('enhancedTable2.aggEditor.field', { defaultMessage: 'Field' })}
+              label={i18n.translate('formulaTable.aggEditor.field', { defaultMessage: 'Field' })}
               display="rowCompressed"
             >
               {fieldOptions.length > 1 ? (
@@ -256,7 +256,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
               ) : (
                 <EuiFieldText
                   compressed
-                  placeholder={i18n.translate('enhancedTable2.aggEditor.fieldPlaceholder', { defaultMessage: 'field name' })}
+                  placeholder={i18n.translate('formulaTable.aggEditor.fieldPlaceholder', { defaultMessage: 'field name' })}
                   value={(row.params.field as string) ?? ''}
                   onChange={(e) => updateParam('field', e.target.value)}
                 />
@@ -270,7 +270,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
           <>
             <EuiFlexItem style={{ minWidth: 70 }}>
               <EuiFormRow
-                label={i18n.translate('enhancedTable2.aggEditor.size', { defaultMessage: 'Size' })}
+                label={i18n.translate('formulaTable.aggEditor.size', { defaultMessage: 'Size' })}
                 display="rowCompressed"
               >
                 <EuiFieldNumber
@@ -283,7 +283,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
             </EuiFlexItem>
             <EuiFlexItem style={{ minWidth: 140 }}>
               <EuiFormRow
-                label={i18n.translate('enhancedTable2.aggEditor.orderBy', { defaultMessage: 'Order by' })}
+                label={i18n.translate('formulaTable.aggEditor.orderBy', { defaultMessage: 'Order by' })}
                 display="rowCompressed"
               >
                 <EuiSelect
@@ -296,7 +296,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
             </EuiFlexItem>
             <EuiFlexItem style={{ minWidth: 120 }}>
               <EuiFormRow
-                label={i18n.translate('enhancedTable2.aggEditor.order', { defaultMessage: 'Order' })}
+                label={i18n.translate('formulaTable.aggEditor.order', { defaultMessage: 'Order' })}
                 display="rowCompressed"
               >
                 <EuiSelect
@@ -314,7 +314,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
         {row.type === 'date_histogram' && (
           <EuiFlexItem style={{ minWidth: 130 }}>
             <EuiFormRow
-              label={i18n.translate('enhancedTable2.aggEditor.calendarInterval', { defaultMessage: 'Interval' })}
+              label={i18n.translate('formulaTable.aggEditor.calendarInterval', { defaultMessage: 'Interval' })}
               display="rowCompressed"
             >
               <EuiSelect
@@ -331,7 +331,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
         {row.type === 'histogram' && (
           <EuiFlexItem style={{ minWidth: 100 }}>
             <EuiFormRow
-              label={i18n.translate('enhancedTable2.aggEditor.interval', { defaultMessage: 'Interval' })}
+              label={i18n.translate('formulaTable.aggEditor.interval', { defaultMessage: 'Interval' })}
               display="rowCompressed"
             >
               <EuiFieldNumber
@@ -349,7 +349,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
           <EuiButtonIcon
             iconType="cross"
             color="danger"
-            aria-label={i18n.translate('enhancedTable2.aggEditor.remove', { defaultMessage: 'Remove' })}
+            aria-label={i18n.translate('formulaTable.aggEditor.remove', { defaultMessage: 'Remove' })}
             isDisabled={!canRemove}
             onClick={onRemove}
             style={{ marginTop: 18 }}
@@ -359,18 +359,18 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
 
       <EuiAccordion
         id={`agg-advanced-${row.id}`}
-        buttonContent={i18n.translate('enhancedTable2.aggEditor.advanced', { defaultMessage: 'Advanced' })}
+        buttonContent={i18n.translate('formulaTable.aggEditor.advanced', { defaultMessage: 'Advanced' })}
         initialIsOpen={Boolean(row.customLabel)}
         paddingSize="s"
       >
         <EuiFormRow
-          label={i18n.translate('enhancedTable2.aggEditor.customLabel', { defaultMessage: 'Label' })}
-          helpText={i18n.translate('enhancedTable2.aggEditor.customLabelHelp', { defaultMessage: 'Overrides the auto-generated column header.' })}
+          label={i18n.translate('formulaTable.aggEditor.customLabel', { defaultMessage: 'Label' })}
+          helpText={i18n.translate('formulaTable.aggEditor.customLabelHelp', { defaultMessage: 'Overrides the auto-generated column header.' })}
           display="rowCompressed"
         >
           <EuiFieldText
             compressed
-            placeholder={i18n.translate('enhancedTable2.aggEditor.customLabelPlaceholder', { defaultMessage: 'e.g. My column' })}
+            placeholder={i18n.translate('formulaTable.aggEditor.customLabelPlaceholder', { defaultMessage: 'e.g. My column' })}
             value={row.customLabel ?? ''}
             onChange={(e) => onChange({ customLabel: e.target.value || undefined })}
           />
@@ -531,14 +531,14 @@ export const AggConfigsEditor: React.FC<AggConfigsEditorProps> = ({
   return (
     <div>
       <AggSection
-        title={i18n.translate('enhancedTable2.aggEditor.metricsTitle', { defaultMessage: 'Metrics' })}
+        title={i18n.translate('formulaTable.aggEditor.metricsTitle', { defaultMessage: 'Metrics' })}
         droppableId="metrics"
         rows={metricRows}
         typeOptions={METRIC_TYPES}
         metricRows={[]}
         minRows={1}
         emptyLabel=""
-        addLabel={i18n.translate('enhancedTable2.aggEditor.addMetric', { defaultMessage: 'Add metric' })}
+        addLabel={i18n.translate('formulaTable.aggEditor.addMetric', { defaultMessage: 'Add metric' })}
         dataView={dataView}
         onAdd={() => addRow('metric')}
         onDragEnd={onDragEnd('metric')}
@@ -549,15 +549,15 @@ export const AggConfigsEditor: React.FC<AggConfigsEditorProps> = ({
       <EuiSpacer size="m" />
 
       <AggSection
-        title={i18n.translate('enhancedTable2.aggEditor.splitTableTitle', { defaultMessage: 'Split table' })}
+        title={i18n.translate('formulaTable.aggEditor.splitTableTitle', { defaultMessage: 'Split table' })}
         droppableId="split"
         rows={splitRows}
         typeOptions={BUCKET_TYPES}
         metricRows={metricRows}
         minRows={0}
         maxRows={1}
-        emptyLabel={i18n.translate('enhancedTable2.aggEditor.noSplitTable', { defaultMessage: 'No split table configured.' })}
-        addLabel={i18n.translate('enhancedTable2.aggEditor.addSplitTable', { defaultMessage: 'Add split table' })}
+        emptyLabel={i18n.translate('formulaTable.aggEditor.noSplitTable', { defaultMessage: 'No split table configured.' })}
+        addLabel={i18n.translate('formulaTable.aggEditor.addSplitTable', { defaultMessage: 'Add split table' })}
         dataView={dataView}
         onAdd={() => addRow('split')}
         onDragEnd={onDragEnd('split')}
@@ -568,14 +568,14 @@ export const AggConfigsEditor: React.FC<AggConfigsEditorProps> = ({
       <EuiSpacer size="m" />
 
       <AggSection
-        title={i18n.translate('enhancedTable2.aggEditor.splitRowsTitle', { defaultMessage: 'Split rows' })}
+        title={i18n.translate('formulaTable.aggEditor.splitRowsTitle', { defaultMessage: 'Split rows' })}
         droppableId="buckets"
         rows={bucketRows}
         typeOptions={BUCKET_TYPES}
         metricRows={metricRows}
         minRows={0}
-        emptyLabel={i18n.translate('enhancedTable2.aggEditor.noSplitRows', { defaultMessage: 'No split rows configured.' })}
-        addLabel={i18n.translate('enhancedTable2.aggEditor.addSplitRow', { defaultMessage: 'Add split row' })}
+        emptyLabel={i18n.translate('formulaTable.aggEditor.noSplitRows', { defaultMessage: 'No split rows configured.' })}
+        addLabel={i18n.translate('formulaTable.aggEditor.addSplitRow', { defaultMessage: 'Add split row' })}
         dataView={dataView}
         onAdd={() => addRow('bucket')}
         onDragEnd={onDragEnd('bucket')}
@@ -586,16 +586,16 @@ export const AggConfigsEditor: React.FC<AggConfigsEditorProps> = ({
       <EuiSpacer size="m" />
 
       <AggSection
-        title={i18n.translate('enhancedTable2.aggEditor.splitColsTitle', { defaultMessage: 'Split columns' })}
+        title={i18n.translate('formulaTable.aggEditor.splitColsTitle', { defaultMessage: 'Split columns' })}
         droppableId="splitcols"
         rows={splitcolsRows}
         typeOptions={BUCKET_TYPES}
         metricRows={metricRows}
         minRows={0}
         maxRows={1}
-        emptyLabel={i18n.translate('enhancedTable2.aggEditor.noSplitCols', { defaultMessage: 'No split columns configured.' })}
-        addLabel={i18n.translate('enhancedTable2.aggEditor.addSplitCol', { defaultMessage: 'Add split columns' })}
-        hint={i18n.translate('enhancedTable2.aggEditor.splitColsHint', { defaultMessage: 'This bucket must be the last one.' })}
+        emptyLabel={i18n.translate('formulaTable.aggEditor.noSplitCols', { defaultMessage: 'No split columns configured.' })}
+        addLabel={i18n.translate('formulaTable.aggEditor.addSplitCol', { defaultMessage: 'Add split columns' })}
+        hint={i18n.translate('formulaTable.aggEditor.splitColsHint', { defaultMessage: 'This bucket must be the last one.' })}
         dataView={dataView}
         onAdd={() => addRow('splitcols')}
         onDragEnd={onDragEnd('splitcols')}

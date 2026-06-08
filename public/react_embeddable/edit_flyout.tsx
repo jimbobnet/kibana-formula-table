@@ -82,11 +82,11 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
   const errors = useMemo(() => {
     const errs: string[] = [];
     if (!localIndexId) {
-      errs.push(i18n.translate('enhancedTable2.editFlyout.errorNoDataView', { defaultMessage: 'A data view must be selected.' }));
+      errs.push(i18n.translate('formulaTable.editFlyout.errorNoDataView', { defaultMessage: 'A data view must be selected.' }));
     }
     localAggRows.forEach((row, i) => {
       if (row.enabled && needsField(row.type) && !row.params.field) {
-        errs.push(i18n.translate('enhancedTable2.editFlyout.errorAggNoField', {
+        errs.push(i18n.translate('formulaTable.editFlyout.errorAggNoField', {
           defaultMessage: 'Aggregation #{num} ({type}) requires a field.',
           values: { num: i + 1, type: row.type },
         }));
@@ -112,17 +112,17 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
     <EuiFlyout onClose={onClose} size="m" ownFocus>
       <EuiFlyoutHeader hasBorder>
         <EuiTitle size="s">
-          <h2>{i18n.translate('enhancedTable2.editFlyout.enhancedTitle', { defaultMessage: 'Edit Enhanced Table 2' })}</h2>
+          <h2>{i18n.translate('formulaTable.editFlyout.enhancedTitle', { defaultMessage: 'Edit Formula Table' })}</h2>
         </EuiTitle>
       </EuiFlyoutHeader>
 
       <EuiFlyoutBody>
         <EuiTabs>
           <EuiTab isSelected={activeTab === 'query'} onClick={() => setActiveTab('query')}>
-            {i18n.translate('enhancedTable2.editFlyout.tabQuery', { defaultMessage: 'Query' })}
+            {i18n.translate('formulaTable.editFlyout.tabQuery', { defaultMessage: 'Query' })}
           </EuiTab>
           <EuiTab isSelected={activeTab === 'display'} onClick={() => setActiveTab('display')}>
-            {i18n.translate('enhancedTable2.editFlyout.tabDisplay', { defaultMessage: 'Display' })}
+            {i18n.translate('formulaTable.editFlyout.tabDisplay', { defaultMessage: 'Display' })}
           </EuiTab>
         </EuiTabs>
         <EuiSpacer size="m" />
@@ -130,7 +130,7 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
         {activeTab === 'query' && (
           <>
             <EuiFormRow
-              label={i18n.translate('enhancedTable2.editFlyout.dataView', { defaultMessage: 'Data view' })}
+              label={i18n.translate('formulaTable.editFlyout.dataView', { defaultMessage: 'Data view' })}
               display="rowCompressed"
             >
               <EuiComboBox
@@ -168,7 +168,7 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
               color="danger"
               iconType="error"
               size="s"
-              title={i18n.translate('enhancedTable2.editFlyout.validationTitle', { defaultMessage: 'Fix the following before applying:' })}
+              title={i18n.translate('formulaTable.editFlyout.validationTitle', { defaultMessage: 'Fix the following before applying:' })}
             >
               <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
                 {errors.map((msg, idx) => <li key={idx}>{msg}</li>)}
@@ -180,12 +180,12 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
         <EuiFlexGroup justifyContent="spaceBetween">
           <EuiFlexItem grow={false}>
             <EuiButtonEmpty onClick={onClose}>
-              {i18n.translate('enhancedTable2.editFlyout.cancel', { defaultMessage: 'Cancel' })}
+              {i18n.translate('formulaTable.editFlyout.cancel', { defaultMessage: 'Cancel' })}
             </EuiButtonEmpty>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiButton fill onClick={handleSave} isDisabled={errors.length > 0}>
-              {i18n.translate('enhancedTable2.editFlyout.apply', { defaultMessage: 'Apply changes' })}
+              {i18n.translate('formulaTable.editFlyout.apply', { defaultMessage: 'Apply changes' })}
             </EuiButton>
           </EuiFlexItem>
         </EuiFlexGroup>
@@ -235,11 +235,11 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
   const errors = useMemo(() => {
     const errs: string[] = [];
     if (!localIndexId) {
-      errs.push(i18n.translate('enhancedTable2.editFlyout.errorNoDataView', { defaultMessage: 'A data view must be selected.' }));
+      errs.push(i18n.translate('formulaTable.editFlyout.errorNoDataView', { defaultMessage: 'A data view must be selected.' }));
     }
     (localParams.fieldColumns ?? []).forEach((col, i) => {
       if (col.enabled !== false && !col.field?.name) {
-        errs.push(i18n.translate('enhancedTable2.editFlyout.errorColumnNoField', {
+        errs.push(i18n.translate('formulaTable.editFlyout.errorColumnNoField', {
           defaultMessage: 'Column "{label}" has no field selected.',
           values: { label: col.label || `#${i + 1}` },
         }));
@@ -258,17 +258,17 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
     <EuiFlyout onClose={onClose} size="m" ownFocus>
       <EuiFlyoutHeader hasBorder>
         <EuiTitle size="s">
-          <h2>{i18n.translate('enhancedTable2.editFlyout.documentTitle', { defaultMessage: 'Edit Document Table 2' })}</h2>
+          <h2>{i18n.translate('formulaTable.editFlyout.documentTitle', { defaultMessage: 'Edit Formula Doc Table' })}</h2>
         </EuiTitle>
       </EuiFlyoutHeader>
 
       <EuiFlyoutBody>
         <EuiTabs>
           <EuiTab isSelected={activeTab === 'columns'} onClick={() => setActiveTab('columns')}>
-            {i18n.translate('enhancedTable2.editFlyout.tabColumns', { defaultMessage: 'Columns & Query' })}
+            {i18n.translate('formulaTable.editFlyout.tabColumns', { defaultMessage: 'Columns & Query' })}
           </EuiTab>
           <EuiTab isSelected={activeTab === 'display'} onClick={() => setActiveTab('display')}>
-            {i18n.translate('enhancedTable2.editFlyout.tabDisplay', { defaultMessage: 'Display' })}
+            {i18n.translate('formulaTable.editFlyout.tabDisplay', { defaultMessage: 'Display' })}
           </EuiTab>
         </EuiTabs>
         <EuiSpacer size="m" />
@@ -276,7 +276,7 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
         {activeTab === 'columns' && (
           <>
             <EuiFormRow
-              label={i18n.translate('enhancedTable2.editFlyout.dataView', { defaultMessage: 'Data view' })}
+              label={i18n.translate('formulaTable.editFlyout.dataView', { defaultMessage: 'Data view' })}
               display="rowCompressed"
             >
               <EuiComboBox
@@ -315,7 +315,7 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
               color="danger"
               iconType="error"
               size="s"
-              title={i18n.translate('enhancedTable2.editFlyout.validationTitle', { defaultMessage: 'Fix the following before applying:' })}
+              title={i18n.translate('formulaTable.editFlyout.validationTitle', { defaultMessage: 'Fix the following before applying:' })}
             >
               <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
                 {errors.map((msg, idx) => <li key={idx}>{msg}</li>)}
@@ -327,12 +327,12 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
         <EuiFlexGroup justifyContent="spaceBetween">
           <EuiFlexItem grow={false}>
             <EuiButtonEmpty onClick={onClose}>
-              {i18n.translate('enhancedTable2.editFlyout.cancel', { defaultMessage: 'Cancel' })}
+              {i18n.translate('formulaTable.editFlyout.cancel', { defaultMessage: 'Cancel' })}
             </EuiButtonEmpty>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiButton fill onClick={handleSave} isDisabled={errors.length > 0}>
-              {i18n.translate('enhancedTable2.editFlyout.apply', { defaultMessage: 'Apply changes' })}
+              {i18n.translate('formulaTable.editFlyout.apply', { defaultMessage: 'Apply changes' })}
             </EuiButton>
           </EuiFlexItem>
         </EuiFlexGroup>

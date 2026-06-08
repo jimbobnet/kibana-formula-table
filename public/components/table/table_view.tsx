@@ -614,7 +614,7 @@ export const TableView: React.FC<TableViewProps> = ({
       )}
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
       <EuiDataGrid
-        aria-label={rawTable.title ?? 'Enhanced Table 2'}
+        aria-label={rawTable.title ?? 'Formula Table'}
         columns={gridColumns}
         columnVisibility={{ visibleColumns, setVisibleColumns }}
         rowCount={sortedRows.length}

@@ -1,7 +1,6 @@
-import { EnhancedTable2Plugin } from './plugin';
+export const PLUGIN_ID = 'formulaTable';
+export const ENH_TABLE_VIS_NAME = 'formula_table';
+export const DOC_TABLE_VIS_NAME = 'formula_doc_table';
+export const SAVED_OBJECT_TYPE = 'formula_table';
 
-export function plugin() {
-  return new EnhancedTable2Plugin();
-}
-
-export type { EnhancedTable2PluginSetup, EnhancedTable2PluginStart } from './types';
+export type { ComputedColumn, FieldColumn, EnhancedTableParams, DocumentTableParams, VisRenderData, VisTable, VisTableColumn, VisTableRow } from './types';

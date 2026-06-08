@@ -1,7 +1,7 @@
 {
-  "prefix": "enhancedTable2",
+  "prefix": "formulaTable",
   "paths": {
-    "enhancedTable2": "."
+    "formulaTable": "."
   },
   "translations": ["translations/ja-JP.json"]
 }

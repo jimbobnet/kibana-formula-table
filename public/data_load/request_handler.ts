@@ -96,10 +96,10 @@ export const handleRequest = ({
           sessionId: searchSessionId,
           inspector: {
             adapter: inspectorAdapters.requests,
-            title: i18n.translate('enhancedTable2.dataRequest.title', {
+            title: i18n.translate('formulaTable.dataRequest.title', {
               defaultMessage: 'Data',
             }),
-            description: i18n.translate('enhancedTable2.dataRequest.description', {
+            description: i18n.translate('formulaTable.dataRequest.description', {
               defaultMessage: 'Queries Elasticsearch to fetch visualization data.',
             }),
           },

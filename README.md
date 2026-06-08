@@ -1,4 +1,4 @@
-# enhancedTable2
+# formulaTable
 
 A Kibana plugin
 

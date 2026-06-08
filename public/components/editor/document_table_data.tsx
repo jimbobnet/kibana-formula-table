@@ -29,8 +29,8 @@ interface DocumentTableDataProps {
 }
 
 const SORT_ORDER_OPTIONS = [
-  { value: 'desc', text: i18n.translate('enhancedTable2.docTable.descending', { defaultMessage: 'Descending' }) },
-  { value: 'asc', text: i18n.translate('enhancedTable2.docTable.ascending', { defaultMessage: 'Ascending' }) },
+  { value: 'desc', text: i18n.translate('formulaTable.docTable.descending', { defaultMessage: 'Descending' }) },
+  { value: 'asc', text: i18n.translate('formulaTable.docTable.ascending', { defaultMessage: 'Ascending' }) },
 ];
 
 const NEW_FIELD_COLUMN: FieldColumn = {
@@ -95,7 +95,7 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
         <EuiFlexGroup justifyContent="spaceBetween" alignItems="center">
           <EuiFlexItem>
             <EuiTitle size="xs">
-              <h3>{i18n.translate('enhancedTable2.docTable.fieldColumns', { defaultMessage: 'Field columns' })}</h3>
+              <h3>{i18n.translate('formulaTable.docTable.fieldColumns', { defaultMessage: 'Field columns' })}</h3>
             </EuiTitle>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
@@ -104,7 +104,7 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
               iconType="plusInCircle"
               onClick={() => setValue('fieldColumns', [...fieldColumns, { ...NEW_FIELD_COLUMN }])}
             >
-              {i18n.translate('enhancedTable2.docTable.addColumn', { defaultMessage: 'Add column' })}
+              {i18n.translate('formulaTable.docTable.addColumn', { defaultMessage: 'Add column' })}
             </EuiButtonEmpty>
           </EuiFlexItem>
         </EuiFlexGroup>
@@ -128,14 +128,14 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
                         <EuiFlexItem grow={false}>
                           <div
                             {...provided.dragHandleProps}
-                            aria-label={i18n.translate('enhancedTable2.docTable.dragToReorder', { defaultMessage: 'Drag to reorder' })}
+                            aria-label={i18n.translate('formulaTable.docTable.dragToReorder', { defaultMessage: 'Drag to reorder' })}
                           >
                             <EuiIcon type="grab" />
                           </div>
                         </EuiFlexItem>
                         <EuiFlexItem>
                           <EuiFormRow
-                            label={i18n.translate('enhancedTable2.docTable.field', { defaultMessage: 'Field' })}
+                            label={i18n.translate('formulaTable.docTable.field', { defaultMessage: 'Field' })}
                             display="rowCompressed"
                           >
                             {fieldOptions.length > 0 ? (
@@ -161,7 +161,7 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
                         </EuiFlexItem>
                         <EuiFlexItem>
                           <EuiFormRow
-                            label={i18n.translate('enhancedTable2.docTable.label', { defaultMessage: 'Label' })}
+                            label={i18n.translate('formulaTable.docTable.label', { defaultMessage: 'Label' })}
                             display="rowCompressed"
                           >
                             <EuiFieldText
@@ -177,8 +177,8 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
                             iconType={col.enabled !== false ? 'eye' : 'eyeClosed'}
                             aria-label={
                               col.enabled !== false
-                                ? i18n.translate('enhancedTable2.docTable.hideColumn', { defaultMessage: 'Hide column' })
-                                : i18n.translate('enhancedTable2.docTable.showColumn', { defaultMessage: 'Show column' })
+                                ? i18n.translate('formulaTable.docTable.hideColumn', { defaultMessage: 'Hide column' })
+                                : i18n.translate('formulaTable.docTable.showColumn', { defaultMessage: 'Show column' })
                             }
                             color={col.enabled !== false ? 'text' : 'subdued'}
                             onClick={() => updateFieldColumn(idx, { enabled: col.enabled === false })}
@@ -187,7 +187,7 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
                         <EuiFlexItem grow={false}>
                           <EuiButtonIcon
                             iconType="cross"
-                            aria-label={i18n.translate('enhancedTable2.docTable.removeColumn', { defaultMessage: 'Remove field column' })}
+                            aria-label={i18n.translate('formulaTable.docTable.removeColumn', { defaultMessage: 'Remove field column' })}
                             color="danger"
                             onClick={() => removeFieldColumn(idx)}
                           />
@@ -207,15 +207,15 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
       {/* HITS / SORT */}
       <EuiPanel paddingSize="s">
         <EuiTitle size="xs">
-          <h3>{i18n.translate('enhancedTable2.docTable.querySettings', { defaultMessage: 'Query settings' })}</h3>
+          <h3>{i18n.translate('formulaTable.docTable.querySettings', { defaultMessage: 'Query settings' })}</h3>
         </EuiTitle>
         <EuiSpacer size="s" />
 
         <EuiFormRow
-          label={i18n.translate('enhancedTable2.docTable.hitsSize', { defaultMessage: 'Maximum rows' })}
+          label={i18n.translate('formulaTable.docTable.hitsSize', { defaultMessage: 'Maximum rows' })}
           display="rowCompressed"
           isInvalid={!isValid}
-          error={i18n.translate('enhancedTable2.docTable.hitsSizeError', { defaultMessage: 'Must be greater than 0' })}
+          error={i18n.translate('formulaTable.docTable.hitsSizeError', { defaultMessage: 'Must be greater than 0' })}
         >
           <EuiFieldNumber
             compressed
@@ -230,7 +230,7 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
         <EuiSpacer size="s" />
 
         <EuiFormRow
-          label={i18n.translate('enhancedTable2.docTable.sortField', { defaultMessage: 'Sort field' })}
+          label={i18n.translate('formulaTable.docTable.sortField', { defaultMessage: 'Sort field' })}
           display="rowCompressed"
         >
           {sortFieldOptions.length > 1 ? (
@@ -252,7 +252,7 @@ export const DocumentTableData: React.FC<DocumentTableDataProps> = ({
         <EuiSpacer size="s" />
 
         <EuiFormRow
-          label={i18n.translate('enhancedTable2.docTable.sortOrder', { defaultMessage: 'Sort order' })}
+          label={i18n.translate('formulaTable.docTable.sortOrder', { defaultMessage: 'Sort order' })}
           display="rowCompressed"
         >
           <EuiSelect
