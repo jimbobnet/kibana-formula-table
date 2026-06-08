@@ -16,6 +16,7 @@ import {
   setThemeService,
   setUiActions,
   setEmbeddableEnhanced,
+  setSavedObjectsClient,
 } from './services';
 import {
   ENHANCED_TABLE_EMBEDDABLE_TYPE,
@@ -54,6 +55,7 @@ export class EnhancedTable2Plugin
     setThemeService(_core.theme);
     setUiActions(deps.uiActions);
     setEmbeddableEnhanced(deps.embeddableEnhanced);
+    setSavedObjectsClient(_core.savedObjects.client);
 
     // Register "Add panel" actions so both embeddable types appear in the dashboard Add panel menu.
     deps.uiActions.registerAction<EmbeddableApiContext>({

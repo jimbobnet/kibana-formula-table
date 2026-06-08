@@ -7,7 +7,7 @@
     "githubTeam": ""
   },
   "description": "React embeddable table visualizations with ROW_CLICK_TRIGGER support",
-  "server": false,
+  "server": true,
   "ui": true,
   "requiredPlugins": [
     "data",

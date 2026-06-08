@@ -12,6 +12,7 @@
     "../../typings/**/*"
   ],
   "kbn_references": [
+    "@kbn/core",
     "@kbn/handlebars",
     "@kbn/presentation-publishing",
     "@kbn/presentation-containers",

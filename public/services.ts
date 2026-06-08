@@ -1,10 +1,12 @@
 import { createGetterSetter } from '@kbn/kibana-utils-plugin/public';
 import type { FieldFormatsStart } from '@kbn/field-formats-plugin/public';
-import type { NotificationsStart, ThemeServiceStart } from '@kbn/core/public';
+import type { NotificationsStart, ThemeServiceStart, CoreStart } from '@kbn/core/public';
 import type { DataViewsPublicPluginStart } from '@kbn/data-views-plugin/public';
 import type { DataPublicPluginStart } from '@kbn/data-plugin/public';
 import type { UiActionsStart } from '@kbn/ui-actions-plugin/public';
 import type { EmbeddableEnhancedPluginStart } from '@kbn/embeddable-enhanced-plugin/public';
+
+type SavedObjectsClient = CoreStart['savedObjects']['client'];
 
 export const [getFormatService, setFormatService] =
   createGetterSetter<FieldFormatsStart>('FieldFormats');
@@ -29,3 +31,6 @@ export const getEmbeddableEnhanced = () => _embeddableEnhanced;
 export const setEmbeddableEnhanced = (service: EmbeddableEnhancedPluginStart | undefined) => {
   _embeddableEnhanced = service;
 };
+
+export const [getSavedObjectsClient, setSavedObjectsClient] =
+  createGetterSetter<SavedObjectsClient>('SavedObjectsClient');
