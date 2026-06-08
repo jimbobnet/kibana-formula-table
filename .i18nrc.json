@@ -3,5 +3,5 @@
   "paths": {
     "formulaTable": "."
   },
-  "translations": ["translations/ja-JP.json"]
+  "translations": ["translations/fr-FR.json"]
 }

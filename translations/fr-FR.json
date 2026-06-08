@@ -1,0 +1,219 @@
+{
+  "formats": {
+    "number": {
+      "currency": {
+        "style": "currency"
+      },
+      "percent": {
+        "style": "percent"
+      }
+    },
+    "date": {
+      "short": {
+        "month": "numeric",
+        "day": "numeric",
+        "year": "2-digit"
+      },
+      "medium": {
+        "month": "short",
+        "day": "numeric",
+        "year": "numeric"
+      },
+      "long": {
+        "month": "long",
+        "day": "numeric",
+        "year": "numeric"
+      },
+      "full": {
+        "weekday": "long",
+        "month": "long",
+        "day": "numeric",
+        "year": "numeric"
+      }
+    },
+    "time": {
+      "short": {
+        "hour": "numeric",
+        "minute": "numeric"
+      },
+      "medium": {
+        "hour": "numeric",
+        "minute": "numeric",
+        "second": "numeric"
+      },
+      "long": {
+        "hour": "numeric",
+        "minute": "numeric",
+        "second": "numeric",
+        "timeZoneName": "short"
+      },
+      "full": {
+        "hour": "numeric",
+        "minute": "numeric",
+        "second": "numeric",
+        "timeZoneName": "short"
+      }
+    },
+    "relative": {
+      "years": {
+        "units": "year"
+      },
+      "months": {
+        "units": "month"
+      },
+      "days": {
+        "units": "day"
+      },
+      "hours": {
+        "units": "hour"
+      },
+      "minutes": {
+        "units": "minute"
+      },
+      "seconds": {
+        "units": "second"
+      }
+    }
+  },
+  "messages": {
+    "formulaTable.aggEditor.type.count": "Nombre",
+    "formulaTable.aggEditor.type.sum": "Somme",
+    "formulaTable.aggEditor.type.avg": "Moyenne",
+    "formulaTable.aggEditor.type.min": "Min",
+    "formulaTable.aggEditor.type.max": "Max",
+    "formulaTable.aggEditor.type.cardinality": "Nombre unique",
+    "formulaTable.aggEditor.type.topHits": "Meilleur résultat",
+    "formulaTable.aggEditor.type.terms": "Termes",
+    "formulaTable.aggEditor.type.dateHistogram": "Histogramme de dates",
+    "formulaTable.aggEditor.type.histogram": "Histogramme",
+    "formulaTable.aggEditor.type.significantTerms": "Termes significatifs",
+    "formulaTable.aggEditor.type.ipPrefix": "Préfixe IP",
+    "formulaTable.aggEditor.interval.auto": "Auto",
+    "formulaTable.aggEditor.interval.1m": "1 minute",
+    "formulaTable.aggEditor.interval.5m": "5 minutes",
+    "formulaTable.aggEditor.interval.10m": "10 minutes",
+    "formulaTable.aggEditor.interval.30m": "30 minutes",
+    "formulaTable.aggEditor.interval.1h": "1 heure",
+    "formulaTable.aggEditor.interval.3h": "3 heures",
+    "formulaTable.aggEditor.interval.12h": "12 heures",
+    "formulaTable.aggEditor.interval.1d": "1 jour",
+    "formulaTable.aggEditor.interval.1w": "1 semaine",
+    "formulaTable.aggEditor.interval.1M": "1 mois",
+    "formulaTable.aggEditor.interval.1y": "1 an",
+    "formulaTable.aggEditor.order.desc": "Décroissant",
+    "formulaTable.aggEditor.order.asc": "Croissant",
+    "formulaTable.aggEditor.selectField": "— Sélectionner un champ —",
+    "formulaTable.aggEditor.orderByCount": "Nombre de documents",
+    "formulaTable.aggEditor.orderByKey": "Alphabétique",
+    "formulaTable.aggEditor.drag": "Glisser pour réordonner",
+    "formulaTable.aggEditor.aggregation": "Agrégation",
+    "formulaTable.aggEditor.field": "Champ",
+    "formulaTable.aggEditor.fieldPlaceholder": "nom du champ",
+    "formulaTable.aggEditor.size": "Taille",
+    "formulaTable.aggEditor.orderBy": "Trier par",
+    "formulaTable.aggEditor.order": "Ordre",
+    "formulaTable.aggEditor.calendarInterval": "Intervalle",
+    "formulaTable.aggEditor.interval": "Intervalle",
+    "formulaTable.aggEditor.remove": "Supprimer",
+    "formulaTable.aggEditor.advanced": "Avancé",
+    "formulaTable.aggEditor.customLabel": "Libellé",
+    "formulaTable.aggEditor.customLabelHelp": "Remplace l'en-tête de colonne généré automatiquement.",
+    "formulaTable.aggEditor.customLabelPlaceholder": "ex. Ma colonne",
+    "formulaTable.aggEditor.metricsTitle": "Métriques",
+    "formulaTable.aggEditor.addMetric": "Ajouter une métrique",
+    "formulaTable.aggEditor.splitTableTitle": "Diviser le tableau",
+    "formulaTable.aggEditor.noSplitTable": "Aucune division de tableau configurée.",
+    "formulaTable.aggEditor.addSplitTable": "Ajouter une division de tableau",
+    "formulaTable.aggEditor.splitRowsTitle": "Diviser les lignes",
+    "formulaTable.aggEditor.noSplitRows": "Aucune division de lignes configurée.",
+    "formulaTable.aggEditor.addSplitRow": "Ajouter une division de lignes",
+    "formulaTable.aggEditor.splitColsTitle": "Diviser les colonnes",
+    "formulaTable.aggEditor.noSplitCols": "Aucune division de colonnes configurée.",
+    "formulaTable.aggEditor.addSplitCol": "Ajouter une division de colonnes",
+    "formulaTable.aggEditor.splitColsHint": "Ce bucket doit être le dernier.",
+    "formulaTable.options.computedColumns": "Colonnes calculées",
+    "formulaTable.options.addComputedColumn": "Ajouter une colonne",
+    "formulaTable.options.rowFormulas": "Paramètres avancés",
+    "formulaTable.options.rowComputedFilter": "Formule de filtre de lignes",
+    "formulaTable.options.rowComputedFilterHelp": "Valeur vraie = afficher la ligne. Variables : col0…colN, formattedCol0…, totalHits. Exemple : col0 > 10",
+    "formulaTable.options.rowComputedCss": "Formule CSS de lignes",
+    "formulaTable.options.rowComputedCssHelp": "Retourne une chaîne CSS appliquée à toute la ligne. Exemple : col0 < 0 ? \"background-color: #fdd\" : \"\"",
+    "formulaTable.options.stripedRows": "Lignes alternées",
+    "formulaTable.options.addRowNumberColumn": "Ajouter une colonne numéro de ligne",
+    "formulaTable.options.hideExportLinks": "Masquer les liens d'export CSV",
+    "formulaTable.options.csvExportWithTotal": "Export CSV avec ligne de total",
+    "formulaTable.options.csvFullExport": "Export CSV complet",
+    "formulaTable.options.csvFullExportHelp": "Si activé, l'export CSV téléchargera toutes les données sans appliquer les colonnes calculées, le filtre de lignes, les colonnes masquées, ni le numéro de ligne. Incompatible avec 'Export CSV avec ligne de total' ou 'Ajouter une colonne numéro de ligne'.",
+    "formulaTable.options.sortSplitCols": "Trier les tableaux divisés",
+    "formulaTable.options.hiddenColumns": "Colonnes masquées",
+    "formulaTable.options.hiddenColumnsHelp": "Indices de colonnes à masquer, séparés par des virgules (ex. 0,2)",
+    "formulaTable.options.basicSettings": "Paramètres de base",
+    "formulaTable.options.hideToolbar": "Afficher la barre d'outils (colonnes, tri, export)",
+    "formulaTable.options.perPage": "Lignes par page",
+    "formulaTable.options.showPartialRows": "Afficher les lignes partielles",
+    "formulaTable.options.showMetricsAtAllLevels": "Afficher les métriques à tous les niveaux",
+    "formulaTable.options.showTotal": "Afficher les totaux de colonnes",
+    "formulaTable.options.totalFunc": "Fonction de total",
+    "formulaTable.options.totalLabel": "Libellé de la ligne de total",
+    "formulaTable.options.totalLabelHelp": "Libellé affiché dans la première colonne de la ligne des totaux",
+    "formulaTable.options.totalLabelPlaceholder": "Total",
+    "formulaTable.options.filterBar": "Barre de filtre",
+    "formulaTable.options.showFilterBar": "Afficher la barre de filtre",
+    "formulaTable.options.filterBarWidth": "Largeur de la barre de filtre",
+    "formulaTable.options.filterCaseSensitive": "Sensible à la casse",
+    "formulaTable.options.filterTermsSeparately": "Correspondre à tous les termes séparément",
+    "formulaTable.options.filterBarHideable": "Barre de filtre masquable",
+    "formulaTable.options.filterHighlightResults": "Mettre en surbrillance le texte correspondant",
+    "formulaTable.dataRequest.title": "Données",
+    "formulaTable.dataRequest.description": "Interroge Elasticsearch pour récupérer les données de visualisation.",
+    "formulaTable.docTable.descending": "Décroissant",
+    "formulaTable.docTable.ascending": "Croissant",
+    "formulaTable.docTable.fieldColumns": "Colonnes de champs",
+    "formulaTable.docTable.addColumn": "Ajouter une colonne",
+    "formulaTable.docTable.dragToReorder": "Glisser pour réordonner",
+    "formulaTable.docTable.field": "Champ",
+    "formulaTable.docTable.label": "Libellé",
+    "formulaTable.docTable.hideColumn": "Masquer la colonne",
+    "formulaTable.docTable.showColumn": "Afficher la colonne",
+    "formulaTable.docTable.removeColumn": "Supprimer la colonne de champ",
+    "formulaTable.docTable.querySettings": "Paramètres de requête",
+    "formulaTable.docTable.hitsSize": "Nombre maximum de lignes",
+    "formulaTable.docTable.hitsSizeError": "Doit être supérieur à 0",
+    "formulaTable.docTable.sortField": "Champ de tri",
+    "formulaTable.docTable.sortOrder": "Ordre de tri",
+    "formulaTable.computedColumn.unnamed": "Colonne calculée {n}",
+    "formulaTable.computedColumn.dragToReorder": "Glisser pour réordonner",
+    "formulaTable.computedColumn.hideColumn": "Masquer la colonne",
+    "formulaTable.computedColumn.showColumn": "Afficher la colonne",
+    "formulaTable.computedColumn.removeColumn": "Supprimer la colonne",
+    "formulaTable.computedColumn.label": "Libellé",
+    "formulaTable.computedColumn.formula": "Formule",
+    "formulaTable.computedColumn.format": "Format",
+    "formulaTable.computedColumn.alignment": "Alignement du texte",
+    "formulaTable.computedColumn.alignLeft": "Gauche",
+    "formulaTable.computedColumn.alignCenter": "Centre",
+    "formulaTable.computedColumn.alignRight": "Droite",
+    "formulaTable.computedColumn.alignJustify": "Justifié",
+    "formulaTable.computedColumn.applyAlignmentOnTitle": "Appliquer l'alignement sur le titre",
+    "formulaTable.computedColumn.applyAlignmentOnTotal": "Appliquer l'alignement sur le total",
+    "formulaTable.computedColumn.applyTemplate": "Appliquer un template Handlebars",
+    "formulaTable.computedColumn.template": "Template",
+    "formulaTable.computedColumn.applyTemplateOnTotal": "Appliquer le template sur la ligne de total",
+    "formulaTable.computedColumn.cellComputedCss": "Formule CSS de cellule",
+    "formulaTable.computedColumn.customColumnPosition": "Position personnalisée de la colonne",
+    "formulaTable.computedColumn.customColumnPositionHelp": "Vous pouvez modifier ici la position cible de la colonne calculée vers une position antérieure. Par exemple, '0' déplacera cette colonne en première position. Malgré la position 'cible' de la colonne, la formule peut référencer toute colonne précédente à la position 'déclarée', y compris les colonnes classiques et calculées.",
+    "formulaTable.computedColumn.customColumnPositionPlaceholder": "(défaut)",
+    "formulaTable.editFlyout.errorNoDataView": "Une vue de données doit être sélectionnée.",
+    "formulaTable.editFlyout.errorAggNoField": "L'agrégation n°{num} ({type}) nécessite un champ.",
+    "formulaTable.editFlyout.enhancedTitle": "Modifier le tableau à formules",
+    "formulaTable.editFlyout.tabQuery": "Requête",
+    "formulaTable.editFlyout.tabDisplay": "Affichage",
+    "formulaTable.editFlyout.dataView": "Vue de données",
+    "formulaTable.editFlyout.validationTitle": "Corrigez les éléments suivants avant d'appliquer :",
+    "formulaTable.editFlyout.cancel": "Annuler",
+    "formulaTable.editFlyout.apply": "Appliquer les modifications",
+    "formulaTable.editFlyout.documentTitle": "Modifier le tableau de documents à formules",
+    "formulaTable.editFlyout.tabColumns": "Colonnes et requête",
+    "formulaTable.editFlyout.errorColumnNoField": "La colonne \"{label}\" n'a pas de champ sélectionné."
+  }
+}
