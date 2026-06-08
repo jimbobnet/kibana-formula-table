@@ -2,6 +2,7 @@ import type { CoreSetup, CoreStart, Plugin } from '@kbn/core/public';
 import { ADD_PANEL_TRIGGER } from '@kbn/ui-actions-plugin/public';
 import { apiCanAddNewPanel } from '@kbn/presentation-containers';
 import type { EmbeddableApiContext } from '@kbn/presentation-publishing';
+import { SAVED_OBJECT_TYPE } from '../common';
 import type {
   SetupDependencies,
   StartDependencies,
@@ -43,6 +44,29 @@ export class EnhancedTable2Plugin
     embeddable.registerReactEmbeddableFactory(DOCUMENT_TABLE_EMBEDDABLE_TYPE, async () =>
       createDocumentTableEmbeddableFactory()
     );
+
+    embeddable.registerAddFromLibraryType({
+      onAdd: (container, savedObject) => {
+        const attrs = savedObject.attributes as { subType?: string };
+        const panelType =
+          attrs.subType === DOCUMENT_TABLE_EMBEDDABLE_TYPE
+            ? DOCUMENT_TABLE_EMBEDDABLE_TYPE
+            : ENHANCED_TABLE_EMBEDDABLE_TYPE;
+        container.addNewPanel(
+          { panelType, serializedState: { rawState: { savedObjectId: savedObject.id } } },
+          true
+        );
+      },
+      savedObjectType: SAVED_OBJECT_TYPE,
+      savedObjectName: 'Enhanced Table 2',
+      getIconForSavedObject: () => 'visTable',
+      getSavedObjectSubType: (savedObject) => {
+        const attrs = savedObject.attributes as { subType?: string };
+        return attrs.subType === DOCUMENT_TABLE_EMBEDDABLE_TYPE
+          ? 'Document Table 2'
+          : 'Enhanced Table 2';
+      },
+    });
 
     return {};
   }

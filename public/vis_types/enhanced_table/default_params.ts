@@ -24,4 +24,5 @@ export const ENHANCED_TABLE_DEFAULT_PARAMS: EnhancedTableParams = {
   filterHighlightResults: false,
   filterBarWidth: '50%',
   sortSplitCols: false,
+  hideToolbar: false,
 };

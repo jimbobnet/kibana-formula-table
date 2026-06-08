@@ -642,7 +642,7 @@ export const TableView: React.FC<TableViewProps> = ({
         sorting={{ columns: sortColumns, onSort: setSortColumns }}
         trailingControlColumns={trailingControlColumns}
         gridStyle={{ stripes: visParams.stripedRows, rowClasses }}
-        toolbarVisibility={{
+        toolbarVisibility={visParams.hideToolbar ? false : {
           showColumnSelector: true,
           showDisplaySelector: false,
           showFullScreenSelector: false,

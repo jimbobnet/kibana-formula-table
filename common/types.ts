@@ -59,6 +59,7 @@ export interface EnhancedTableParams {
   rowComputedFilter?: string;
   rowComputedCss?: string;
   sortSplitCols?: boolean;
+  hideToolbar?: boolean;
 }
 
 export interface DocumentTableParams {
@@ -83,6 +84,7 @@ export interface DocumentTableParams {
   filterBarWidth?: string;
   rowComputedFilter?: string;
   rowComputedCss?: string;
+  hideToolbar?: boolean;
   fieldColumns: FieldColumn[];
   hitsSize: number;
   sortField: { name: string };

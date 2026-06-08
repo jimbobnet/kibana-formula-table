@@ -30,4 +30,5 @@ export const DOCUMENT_TABLE_DEFAULT_PARAMS: DocumentTableParams = {
   hitsSize: 10,
   sortField: { name: '_score' },
   sortOrder: 'desc',
+  hideToolbar: false,
 };

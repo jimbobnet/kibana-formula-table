@@ -2,6 +2,7 @@ import React from 'react';
 import type { DropResult } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import {
+  EuiAccordion,
   EuiButtonEmpty,
   EuiButtonIcon,
   EuiDragDropContext,
@@ -31,6 +32,7 @@ export interface AggRow {
   type: string;
   schema: AggSchema;
   params: Record<string, unknown>;
+  customLabel?: string;
 }
 
 // ── serialize / parse ─────────────────────────────────────────────────────────
@@ -47,6 +49,7 @@ export function parseAggRowsFromConfig(
     type: cfg.type ?? 'count',
     schema: (cfg.schema ?? 'metric') as AggSchema,
     params: cfg.params ?? {},
+    ...(cfg.customLabel ? { customLabel: String(cfg.customLabel) } : {}),
   }));
 }
 
@@ -61,6 +64,7 @@ export function serializeAggRows(rows: AggRow[]): {
       type: r.type,
       schema: r.schema,
       params: r.params,
+      ...(r.customLabel ? { customLabel: r.customLabel } : {}),
     })),
     schemas: {},
   };
@@ -352,6 +356,26 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
           />
         </EuiFlexItem>
       </EuiFlexGroup>
+
+      <EuiAccordion
+        id={`agg-advanced-${row.id}`}
+        buttonContent={i18n.translate('enhancedTable2.aggEditor.advanced', { defaultMessage: 'Advanced' })}
+        initialIsOpen={Boolean(row.customLabel)}
+        paddingSize="s"
+      >
+        <EuiFormRow
+          label={i18n.translate('enhancedTable2.aggEditor.customLabel', { defaultMessage: 'Column title' })}
+          helpText={i18n.translate('enhancedTable2.aggEditor.customLabelHelp', { defaultMessage: 'Overrides the auto-generated column header.' })}
+          display="rowCompressed"
+        >
+          <EuiFieldText
+            compressed
+            placeholder={i18n.translate('enhancedTable2.aggEditor.customLabelPlaceholder', { defaultMessage: 'e.g. My column' })}
+            value={row.customLabel ?? ''}
+            onChange={(e) => onChange({ customLabel: e.target.value || undefined })}
+          />
+        </EuiFormRow>
+      </EuiAccordion>
     </EuiPanel>
   );
 };

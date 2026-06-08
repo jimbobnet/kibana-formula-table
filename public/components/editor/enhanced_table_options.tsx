@@ -258,6 +258,14 @@ export const EnhancedTableOptions: React.FC<EnhancedTableEditorProps> = ({
         </EuiTitle>
         <EuiSpacer size="s" />
 
+        <EuiSwitch
+          compressed
+          label={i18n.translate('enhancedTable2.options.hideToolbar', { defaultMessage: 'Show toolbar (columns, sort, export)' })}
+          checked={!stateParams.hideToolbar}
+          onChange={(e) => setValue('hideToolbar', !e.target.checked)}
+        />
+        <EuiSpacer size="s" />
+
         <EuiFormRow label={i18n.translate('enhancedTable2.options.perPage', { defaultMessage: 'Rows per page' })} display="rowCompressed">
           <EuiFieldNumber
             compressed
