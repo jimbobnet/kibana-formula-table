@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { BehaviorSubject } from 'rxjs';
-import type { EmbeddableFactory} from '@kbn/embeddable-plugin/public';
+import { BehaviorSubject, merge, map } from 'rxjs';
+import type { EmbeddableFactory } from '@kbn/embeddable-plugin/public';
 import { VALUE_CLICK_TRIGGER } from '@kbn/embeddable-plugin/public';
 import { initializeTitleManager } from '@kbn/presentation-publishing';
+import { initializeUnsavedChanges } from '@kbn/presentation-containers';
 import { DOC_TABLE_VIS_NAME } from '../../common';
 import { DOCUMENT_TABLE_DEFAULT_PARAMS } from '../vis_types/document_table/default_params';
 import { getEmbeddableEnhanced } from '../services';
@@ -22,7 +23,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
 > {
   return {
     type: DOCUMENT_TABLE_EMBEDDABLE_TYPE,
-    buildEmbeddable: async ({ initialState, finalizeApi, uuid }) => {
+    buildEmbeddable: async ({ initialState, finalizeApi, uuid, parentApi }) => {
       const rawState = initialState.rawState;
 
       const titleManager = initializeTitleManager(rawState);
@@ -41,23 +42,51 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
         if (update.params !== undefined) params$.next(update.params);
       };
 
+      const serializeState = () => ({
+        rawState: {
+          title: titleManager.api.title$.getValue(),
+          ...(dynamicActionsManager?.getLatestState() ?? {}),
+          indexId: indexId$.getValue(),
+          params: params$.getValue(),
+        },
+      });
+
+      const unsavedChangesApi = initializeUnsavedChanges<DocumentTableSerializedState>({
+        uuid,
+        parentApi,
+        serializeState,
+        anyStateChange$: merge(
+          indexId$,
+          params$,
+          titleManager.anyStateChange$,
+          ...(dynamicActionsManager ? [dynamicActionsManager.anyStateChange$] : [])
+        ).pipe(map(() => undefined as void)),
+        getComparators: () => ({
+          enhancements: 'deepEquality' as const,
+          title: 'referenceEquality' as const,
+          indexId: 'referenceEquality' as const,
+          params: 'deepEquality' as const,
+        }),
+        onReset: (lastSaved) => {
+          const raw = lastSaved?.rawState;
+          titleManager.reinitializeState({ title: raw?.title });
+          dynamicActionsManager?.reinitializeState(raw ?? {});
+          indexId$.next(raw?.indexId);
+          params$.next(raw?.params ?? { ...DOCUMENT_TABLE_DEFAULT_PARAMS });
+        },
+      });
+
       const api = finalizeApi({
         ...titleManager.api,
         ...(dynamicActionsManager?.api ?? {}),
+        ...unsavedChangesApi,
         supportedTriggers(): Trigger[] {
             return [VALUE_CLICK_TRIGGER, ROW_CLICK_TRIGGER];
           },
         onEdit: async () => { isEditing$.next(true); },
         isEditingEnabled: () => true,
         getTypeDisplayName: () => 'Document Table 2',
-        serializeState: () => ({
-          rawState: {
-            title: titleManager.api.title$.getValue(),
-            ...(dynamicActionsManager?.getLatestState() ?? {}),
-            indexId: indexId$.getValue(),
-            params: params$.getValue(),
-          },
-        }),
+        serializeState,
       });
 
       const Component = () => {

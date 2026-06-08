@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, merge, map } from 'rxjs';
 import type { EmbeddableFactory } from '@kbn/embeddable-plugin/public';
 import { VALUE_CLICK_TRIGGER } from '@kbn/embeddable-plugin/public';
 import { ROW_CLICK_TRIGGER } from '@kbn/ui-actions-plugin/public';
 import { initializeTitleManager } from '@kbn/presentation-publishing';
+import { initializeUnsavedChanges } from '@kbn/presentation-containers';
 import { ENH_TABLE_VIS_NAME } from '../../common';
 import { ENHANCED_TABLE_DEFAULT_PARAMS } from '../vis_types/enhanced_table/default_params';
 import { getEmbeddableEnhanced } from '../services';
@@ -22,7 +23,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
 > {
   return {
     type: ENHANCED_TABLE_EMBEDDABLE_TYPE,
-    buildEmbeddable: async ({ initialState, finalizeApi, uuid }) => {
+    buildEmbeddable: async ({ initialState, finalizeApi, uuid, parentApi }) => {
       const rawState = initialState.rawState;
 
       const titleManager = initializeTitleManager(rawState);
@@ -47,25 +48,59 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
         if (update.params !== undefined) params$.next(update.params);
       };
 
+      const serializeState = () => ({
+        rawState: {
+          title: titleManager.api.title$.getValue(),
+          ...(dynamicActionsManager?.getLatestState() ?? {}),
+          indexId: indexId$.getValue(),
+          aggConfigs: aggConfigs$.getValue(),
+          schemas: schemas$.getValue(),
+          params: params$.getValue(),
+        },
+      });
+
+      const unsavedChangesApi = initializeUnsavedChanges<EnhancedTableSerializedState>({
+        uuid,
+        parentApi,
+        serializeState,
+        anyStateChange$: merge(
+          indexId$,
+          aggConfigs$,
+          schemas$,
+          params$,
+          titleManager.anyStateChange$,
+          ...(dynamicActionsManager ? [dynamicActionsManager.anyStateChange$] : [])
+        ).pipe(map(() => undefined as void)),
+        getComparators: () => ({
+          enhancements: 'deepEquality' as const,
+          title: 'referenceEquality' as const,
+          indexId: 'referenceEquality' as const,
+          aggConfigs: 'deepEquality' as const,
+          schemas: 'deepEquality' as const,
+          params: 'deepEquality' as const,
+        }),
+        onReset: (lastSaved) => {
+          const raw = lastSaved?.rawState;
+          titleManager.reinitializeState({ title: raw?.title });
+          dynamicActionsManager?.reinitializeState(raw ?? {});
+          indexId$.next(raw?.indexId);
+          aggConfigs$.next(raw?.aggConfigs ?? []);
+          schemas$.next(raw?.schemas ?? {});
+          params$.next(raw?.params ?? { ...ENHANCED_TABLE_DEFAULT_PARAMS });
+        },
+      });
+
       const api = finalizeApi({
         ...titleManager.api,
         ...(dynamicActionsManager?.api ?? {}),
+        ...unsavedChangesApi,
         supportedTriggers(): Trigger[] {
           return [VALUE_CLICK_TRIGGER, ROW_CLICK_TRIGGER];
         },
         onEdit: async () => { isEditing$.next(true); },
         isEditingEnabled: () => true,
         getTypeDisplayName: () => 'Enhanced Table 2',
-        serializeState: () => ({
-          rawState: {
-            title: titleManager.api.title$.getValue(),
-            ...(dynamicActionsManager?.getLatestState() ?? {}),
-            indexId: indexId$.getValue(),
-            aggConfigs: aggConfigs$.getValue(),
-            schemas: schemas$.getValue(),
-            params: params$.getValue(),
-          },
-        }),
+        serializeState,
       });
 
       const Component = () => {

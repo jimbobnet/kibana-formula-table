@@ -1,5 +1,9 @@
 import type { DefaultEmbeddableApi } from '@kbn/embeddable-plugin/public';
-import type { HasSupportedTriggers, HasEditCapabilities } from '@kbn/presentation-publishing';
+import type {
+  HasSupportedTriggers,
+  HasEditCapabilities,
+  PublishesUnsavedChanges,
+} from '@kbn/presentation-publishing';
 import type {
   HasDynamicActions,
   DynamicActionsSerializedState,
@@ -23,9 +27,11 @@ export interface DocumentTableSerializedState extends DynamicActionsSerializedSt
 export type EnhancedTableApi = DefaultEmbeddableApi<EnhancedTableSerializedState>
   & HasSupportedTriggers
   & HasEditCapabilities
-  & HasDynamicActions;
+  & HasDynamicActions
+  & PublishesUnsavedChanges;
 
 export type DocumentTableApi = DefaultEmbeddableApi<DocumentTableSerializedState>
   & HasSupportedTriggers
   & HasEditCapabilities
-  & HasDynamicActions;
+  & HasDynamicActions
+  & PublishesUnsavedChanges;
