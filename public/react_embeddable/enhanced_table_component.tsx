@@ -90,10 +90,19 @@ export const EnhancedTableEmbeddableComponent: React.FC<Props> = ({
         if (controller.signal.aborted) return;
 
         if (response?.columns) {
+          const aggIdToCustomLabel = new Map<string, string>();
+          ((aggConfigs ?? []) as any[]).forEach((cfg: any) => {
+            if (cfg.id && cfg.customLabel) {
+              aggIdToCustomLabel.set(String(cfg.id), String(cfg.customLabel));
+            }
+          });
+
           response.columns.forEach((column: any) => {
             if (column.meta?.sourceParams?.id) {
               const aggId = column.meta.sourceParams.id.split('.')[0];
               column.aggConfig = aggs.byId(aggId);
+              const customLabel = aggIdToCustomLabel.get(aggId);
+              if (customLabel) column.name = customLabel;
             }
             // Backfill index/indexPatternId so VALUE_CLICK_TRIGGER filter action
             // can always build an ES filter (mirrors documentTableResponseHandler).

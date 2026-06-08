@@ -1,8 +1,14 @@
 import type { CoreSetup, CoreStart, Plugin } from '@kbn/core/server';
+import type { ContentManagementServerSetup } from '@kbn/content-management-plugin/server';
 import { SAVED_OBJECT_TYPE } from '../common';
+import { EnhancedTableStorage, CONTENT_LATEST_VERSION } from './content_management';
+
+interface SetupDeps {
+  contentManagement: ContentManagementServerSetup;
+}
 
 export class EnhancedTable2ServerPlugin implements Plugin {
-  public setup(core: CoreSetup) {
+  public setup(core: CoreSetup, { contentManagement }: SetupDeps) {
     core.savedObjects.registerType({
       name: SAVED_OBJECT_TYPE,
       hidden: false,
@@ -23,6 +29,12 @@ export class EnhancedTable2ServerPlugin implements Plugin {
         icon: 'visTable',
         defaultSearchField: 'title',
       },
+    });
+
+    contentManagement.register({
+      id: SAVED_OBJECT_TYPE,
+      storage: new EnhancedTableStorage(),
+      version: { latest: CONTENT_LATEST_VERSION },
     });
   }
 

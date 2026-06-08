@@ -25,7 +25,7 @@ import { compileTemplate, renderTemplate, buildTemplateContext } from './handleb
 import { SafeHtmlCell, CssStyledCell } from './safe_html_cell';
 import { buildCsvContent, downloadCsv } from './csv_export';
 import type { TemplateDelegate } from '@kbn/handlebars';
-import { getUiActions } from '../../services';
+import { getUiActions, getFormatService } from '../../services';
 import type { VisTable, EnhancedTableParams, DocumentTableParams, TableEvent } from '../../../common/types';
 
 type TableParams = EnhancedTableParams | DocumentTableParams;
@@ -166,6 +166,17 @@ export const TableView: React.FC<TableViewProps> = ({
     });
     return map;
   }, [enabledComputedCols]);
+
+  const colFormatters = useMemo(() => {
+    const map = new Map<string, any>();
+    displayedColumns.forEach((col) => {
+      const serialized = (col.aggConfig as any)?.toSerializedFieldFormat?.();
+      if (serialized) {
+        try { map.set(col.id, getFormatService().deserialize(serialized)); } catch {}
+      }
+    });
+    return map;
+  }, [displayedColumns]);
 
   const highlightTerms = useMemo(() => {
     if (!deferredFilterText || !(visParams.filterHighlightResults ?? false) || !visParams.showFilterBar) return [];
@@ -350,9 +361,11 @@ export const TableView: React.FC<TableViewProps> = ({
             columns: displayedColumns.map((c) => ({ id: c.id, name: c.name, meta: c.meta ?? { type: 'string' } })),
             rows: rows.map((r) => ({ ...r })),
           };
+          const rawValue = row[col.id];
+          const values = Array.isArray(rawValue) ? rawValue : [rawValue];
           fireEvent({
             name: 'filter',
-            data: { negate, data: [{ row: rowIndex, column: colIndex, value: row[col.id], table: flatTable }] },
+            data: { negate, data: values.map((val) => ({ row: rowIndex, column: colIndex, value: val, table: flatTable })) },
           });
         };
 
@@ -613,7 +626,14 @@ export const TableView: React.FC<TableViewProps> = ({
             : null;
           if (ccResult !== null) return ccResult;
 
-          const val = row ? (row[columnId] != null ? String(row[columnId]) : null) : null;
+          const formatter = colFormatters.get(columnId);
+          const val = row
+            ? row[columnId] != null
+              ? formatter
+                ? formatter.convert(row[columnId], 'text')
+                : String(row[columnId])
+              : null
+            : null;
           if (val && highlightTerms.length) {
             return <>{highlightText(val, highlightTerms, visParams.filterCaseSensitive ?? false)}</>;
           }

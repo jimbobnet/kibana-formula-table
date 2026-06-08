@@ -17,7 +17,8 @@
     "embeddable",
     "inspector",
     "kibanaUtils",
-    "kibanaReact"
+    "kibanaReact",
+    "contentManagement"
   ],
   "optionalPlugins": ["share", "usageCollection", "embeddableEnhanced"]
 }
