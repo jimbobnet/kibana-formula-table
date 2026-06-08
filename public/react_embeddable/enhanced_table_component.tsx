@@ -95,6 +95,14 @@ export const EnhancedTableEmbeddableComponent: React.FC<Props> = ({
               const aggId = column.meta.sourceParams.id.split('.')[0];
               column.aggConfig = aggs.byId(aggId);
             }
+            // Backfill index/indexPatternId so VALUE_CLICK_TRIGGER filter action
+            // can always build an ES filter (mirrors documentTableResponseHandler).
+            if (column.meta) {
+              if (!column.meta.index) column.meta.index = dataView.id;
+              if (column.meta.sourceParams && !column.meta.sourceParams.indexPatternId) {
+                column.meta.sourceParams.indexPatternId = dataView.id;
+              }
+            }
           });
           if (schemas) {
             Object.keys(schemas).forEach((schemaName) => {

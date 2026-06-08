@@ -68,9 +68,15 @@ export function serializeAggRows(rows: AggRow[]): {
 
 // ── row factories ─────────────────────────────────────────────────────────────
 
+// Use a monotonic integer counter for agg IDs — decimal IDs (e.g. from
+// Date.now() + Math.random()) are truncated by the split('.')[0] lookup in
+// enhanced_table_component.tsx, causing aggs.byId() to miss and filterable = false.
+let _idCounter = 100;
+const nextAggId = () => String(++_idCounter);
+
 function makeMetricRow(id?: string): AggRow {
   return {
-    id: id ?? String(Date.now() + Math.random()),
+    id: id ?? nextAggId(),
     enabled: true,
     type: 'count',
     schema: 'metric',
@@ -80,7 +86,7 @@ function makeMetricRow(id?: string): AggRow {
 
 function makeBucketRow(schema: AggSchema): AggRow {
   return {
-    id: String(Date.now() + Math.random()),
+    id: nextAggId(),
     enabled: true,
     type: 'terms',
     schema,
