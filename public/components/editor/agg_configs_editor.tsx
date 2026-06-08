@@ -364,7 +364,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
         paddingSize="s"
       >
         <EuiFormRow
-          label={i18n.translate('enhancedTable2.aggEditor.customLabel', { defaultMessage: 'Column title' })}
+          label={i18n.translate('enhancedTable2.aggEditor.customLabel', { defaultMessage: 'Label' })}
           helpText={i18n.translate('enhancedTable2.aggEditor.customLabelHelp', { defaultMessage: 'Overrides the auto-generated column header.' })}
           display="rowCompressed"
         >
