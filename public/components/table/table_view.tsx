@@ -17,7 +17,7 @@ import {
   EuiSpacer,
 } from '@elastic/eui';
 import { CELL_VALUE_TRIGGER } from '@kbn/ui-actions-plugin/public';
-import { computeColumnsForTable, parseFormula, evaluateRowExpression } from './computed_column_engine';
+import { computeColumnsForTable, parseFormula, evaluateRowExpression, COMPUTED_COL_RE } from './computed_column_engine';
 import type { ParsedExpression } from './computed_column_engine';
 import { computeColumnTotal } from './column_totals';
 import { formatComputedColumnValue } from './format_computed_value';
@@ -38,12 +38,9 @@ const hashStr = (s: string): string => {
 
 const highlightText = (
   text: string,
-  terms: string[],
-  caseSensitive: boolean
+  regex: RegExp
 ): React.ReactNode => {
-  if (!terms.length || !text) return text;
-  const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const regex = new RegExp(`(${escaped.join('|')})`, caseSensitive ? 'g' : 'gi');
+  if (!text) return text;
   const parts = text.split(regex);
   if (parts.length <= 1) return text;
   return (
@@ -186,6 +183,13 @@ export const TableView: React.FC<TableViewProps> = ({
       ? text.split(/\s+/).filter(Boolean)
       : [text];
   }, [deferredFilterText, visParams.filterHighlightResults, visParams.showFilterBar, visParams.filterCaseSensitive, visParams.filterTermsSeparately]);
+
+  const highlightRegex = useMemo((): RegExp | null => {
+    if (!highlightTerms.length) return null;
+    const caseSensitive = visParams.filterCaseSensitive ?? false;
+    const escaped = highlightTerms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    return new RegExp(`(${escaped.join('|')})`, caseSensitive ? 'g' : 'gi');
+  }, [highlightTerms, visParams.filterCaseSensitive]);
 
   // Row formula filter: applied after computed columns, before text filter bar.
   // Totals are still computed from allRows (unfiltered).
@@ -427,10 +431,9 @@ export const TableView: React.FC<TableViewProps> = ({
         ...(cellActions.length > 0 ? { cellActions } : {}),
       };
 
-      const ccHeaderMatch = col.id.match(/^computed_col_(\d+)$/);
+      const ccHeaderMatch = col.id.match(COMPUTED_COL_RE);
       if (ccHeaderMatch) {
-        const enabledCCs = (visParams.computedColumns ?? []).filter((c) => c.enabled);
-        const cc = enabledCCs[parseInt(ccHeaderMatch[1], 10)];
+        const cc = enabledComputedCols[parseInt(ccHeaderMatch[1], 10)];
         if (cc && cc.applyAlignmentOnTitle && cc.alignment !== 'left') {
           colDef.display = (
             <span style={{ display: 'block', textAlign: cc.alignment as React.CSSProperties['textAlign'] }}>
@@ -442,7 +445,7 @@ export const TableView: React.FC<TableViewProps> = ({
 
       return colDef;
     });
-  }, [displayedColumns, columnCompatibleActions, fireEvent, visParams.computedColumns]);
+  }, [displayedColumns, columnCompatibleActions, fireEvent, enabledComputedCols]);
 
   const trailingControlColumns: EuiDataGridControlColumn[] = useMemo(() => {
     if (!hasRowClickActions) return [];
@@ -542,7 +545,7 @@ export const TableView: React.FC<TableViewProps> = ({
     isTotals: boolean,
     rowIndex?: number
   ) => {
-    const ccMatch = columnId.match(/^computed_col_(\d+)$/);
+    const ccMatch = columnId.match(COMPUTED_COL_RE);
     if (!ccMatch) return null;
     const ccIdx = parseInt(ccMatch[1], 10);
     const cc = enabledComputedCols[ccIdx];
@@ -634,8 +637,8 @@ export const TableView: React.FC<TableViewProps> = ({
                 : String(row[columnId])
               : null
             : null;
-          if (val && highlightTerms.length) {
-            return <>{highlightText(val, highlightTerms, visParams.filterCaseSensitive ?? false)}</>;
+          if (val && highlightRegex) {
+            return <>{highlightText(val, highlightRegex)}</>;
           }
           return <>{val}</>;
         }}

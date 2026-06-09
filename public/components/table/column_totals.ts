@@ -7,27 +7,30 @@ export function computeColumnTotal(
   rows: VisTableRow[],
   func: TotalFunc
 ): number | null {
-  const numericValues = rows
-    .map((row) => {
-      const v = row[columnId];
-      const n = typeof v === 'number' ? v : Number(v);
-      return isNaN(n) ? null : n;
-    })
-    .filter((v): v is number => v !== null);
-
   if (func === 'count') return rows.length;
-  if (numericValues.length === 0) return null;
+
+  let sum = 0;
+  let count = 0;
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const row of rows) {
+    const v = row[columnId];
+    const n = typeof v === 'number' ? v : Number(v);
+    if (isNaN(n)) continue;
+    sum += n;
+    count++;
+    if (n < min) min = n;
+    if (n > max) max = n;
+  }
+
+  if (count === 0) return null;
 
   switch (func) {
-    case 'sum':
-      return numericValues.reduce((a, b) => a + b, 0);
-    case 'avg':
-      return numericValues.reduce((a, b) => a + b, 0) / numericValues.length;
-    case 'min':
-      return Math.min(...numericValues);
-    case 'max':
-      return Math.max(...numericValues);
-    default:
-      return null;
+    case 'sum': return sum;
+    case 'avg': return sum / count;
+    case 'min': return min;
+    case 'max': return max;
+    default: return null;
   }
 }

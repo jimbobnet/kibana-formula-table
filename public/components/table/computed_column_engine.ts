@@ -4,6 +4,8 @@ import type { ComputedColumn, VisTableColumn, VisTableRow } from '../../../commo
 
 export type ParsedExpression = ReturnType<Parser['parse']>;
 
+export const COMPUTED_COL_RE = /^computed_col_(\d+)$/;
+
 const buildParser = (): Parser => {
   const parser = new Parser({
     operators: {
@@ -30,6 +32,42 @@ const toNum = (v: unknown): number | null => {
   return isNaN(n) ? null : n;
 };
 
+// Registers cell() and formattedCell() on the shared parser once.
+// getRowIndex() is called at evaluate-time so the caller can point it at a
+// mutable variable (computeColumnsForTable) or a fixed parameter (evaluateRowExpression).
+function registerCellFunctions(
+  parser: Parser,
+  rows: VisTableRow[],
+  columns: VisTableColumn[],
+  getRowIndex: () => number
+): void {
+  parser.functions.cell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
+    const idx =
+      rowRef === 'first' ? 0
+      : rowRef === 'last' ? rows.length - 1
+      : getRowIndex() + (rowRef as number);
+    const targetRow = rows[idx];
+    if (!targetRow) return defaultValue;
+    const col = columns[colRef];
+    if (!col) return defaultValue;
+    const n = toNum(targetRow[col.id]);
+    return n !== null ? n : defaultValue;
+  };
+
+  parser.functions.formattedCell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
+    const idx =
+      rowRef === 'first' ? 0
+      : rowRef === 'last' ? rows.length - 1
+      : getRowIndex() + (rowRef as number);
+    const targetRow = rows[idx];
+    if (!targetRow) return defaultValue;
+    const col = columns[colRef];
+    if (!col) return defaultValue;
+    const v = targetRow[col.id];
+    return v != null ? String(v) : defaultValue;
+  };
+}
+
 export function computeColumnsForTable(
   existingColumns: VisTableColumn[],
   rows: VisTableRow[],
@@ -47,11 +85,13 @@ export function computeColumnsForTable(
   // totals footer in the UI is correct because it is computed separately (via computeColumnTotal)
   // after this function returns, at which point newRows already contains computed values.
   const totals = existingColumns.map((col) => {
-    const vals = rows.map((r) => {
+    let sum = 0;
+    for (const r of rows) {
       const v = r[col.id];
-      return typeof v === 'number' ? v : Number(v);
-    });
-    return vals.filter((v) => !isNaN(v)).reduce((a, b) => a + b, 0);
+      const n = typeof v === 'number' ? v : Number(v);
+      if (!isNaN(n)) sum += n;
+    }
+    return sum;
   });
 
   const newColumns: VisTableColumn[] = [...existingColumns];
@@ -60,6 +100,10 @@ export function computeColumnsForTable(
   // Mutable index updated before each row's evaluate() so cell()/formattedCell()
   // closures can reference the current row without rebuilding the parser per row.
   let currentRowIdx = 0;
+
+  // Register cell/formattedCell once. newRows is a live array — each column's values
+  // are visible to subsequent columns because rows are mutated in place below.
+  registerCellFunctions(parser, newRows, existingColumns, () => currentRowIdx);
 
   enabledCols.forEach((cc, ccIdx) => {
     const colId = `computed_col_${ccIdx}`;
@@ -82,37 +126,6 @@ export function computeColumnsForTable(
       ? Math.min(pos, newColumns.length)
       : newColumns.length;
     newColumns.splice(insertAt, 0, colDef);
-
-    // Register cell/formattedCell with closures over newRows and currentRowIdx.
-    // These are re-registered per computed column so they see the rows that exist
-    // at the time this column is being evaluated.
-    const rowsSnapshot = newRows;
-
-    parser.functions.cell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
-      const rowIdx =
-        rowRef === 'first' ? 0
-        : rowRef === 'last' ? rowsSnapshot.length - 1
-        : currentRowIdx + (rowRef as number);
-      const targetRow = rowsSnapshot[rowIdx];
-      if (!targetRow) return defaultValue;
-      const col = existingColumns[colRef];
-      if (!col) return defaultValue;
-      const n = toNum(targetRow[col.id]);
-      return n !== null ? n : defaultValue;
-    };
-
-    parser.functions.formattedCell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
-      const rowIdx =
-        rowRef === 'first' ? 0
-        : rowRef === 'last' ? rowsSnapshot.length - 1
-        : currentRowIdx + (rowRef as number);
-      const targetRow = rowsSnapshot[rowIdx];
-      if (!targetRow) return defaultValue;
-      const col = existingColumns[colRef];
-      if (!col) return defaultValue;
-      const v = targetRow[col.id];
-      return v != null ? String(v) : defaultValue;
-    };
 
     newRows.forEach((row, rowIdx) => {
       currentRowIdx = rowIdx;
@@ -156,32 +169,7 @@ export function evaluateRowExpression(
   extraVars?: Record<string, unknown>
 ): unknown {
   const parser = getParser();
-
-  parser.functions.cell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
-    const idx =
-      rowRef === 'first' ? 0
-      : rowRef === 'last' ? rows.length - 1
-      : rowIndex + (rowRef as number);
-    const targetRow = rows[idx];
-    if (!targetRow) return defaultValue;
-    const col = columns[colRef];
-    if (!col) return defaultValue;
-    const n = toNum(targetRow[col.id]);
-    return n !== null ? n : defaultValue;
-  };
-
-  parser.functions.formattedCell = (rowRef: 'first' | 'last' | number, colRef: number, defaultValue: unknown = null) => {
-    const idx =
-      rowRef === 'first' ? 0
-      : rowRef === 'last' ? rows.length - 1
-      : rowIndex + (rowRef as number);
-    const targetRow = rows[idx];
-    if (!targetRow) return defaultValue;
-    const col = columns[colRef];
-    if (!col) return defaultValue;
-    const v = targetRow[col.id];
-    return v != null ? String(v) : defaultValue;
-  };
+  registerCellFunctions(parser, rows, columns, () => rowIndex);
 
   const vars: Record<string, unknown> = { totalHits, ...extraVars };
   columns.forEach((col, i) => {

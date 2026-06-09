@@ -1,4 +1,5 @@
 import { formatComputedColumnValue } from './format_computed_value';
+import { COMPUTED_COL_RE } from './computed_column_engine';
 import type { ComputedColumn, VisTableColumn, VisTableRow } from '../../../common/types';
 
 const escapeCell = (value: unknown, separator: string): string => {
@@ -14,7 +15,7 @@ const formatCellValue = (
   col: VisTableColumn,
   enabledComputedCols: ComputedColumn[]
 ): unknown => {
-  const ccMatch = col.id.match(/^computed_col_(\d+)$/);
+  const ccMatch = col.id.match(COMPUTED_COL_RE);
   if (ccMatch) {
     const cc = enabledComputedCols[parseInt(ccMatch[1], 10)];
     return cc ? formatComputedColumnValue(rawVal, cc) : String(rawVal ?? '');

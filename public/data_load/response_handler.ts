@@ -31,9 +31,15 @@ function splitTableByColumn(
   rows: VisTableRow[],
   title?: string
 ): VisTable[] {
-  const splitColumn = columns.find(
-    (col) => col.aggConfig?.schema === 'split'
-  );
+  let splitColumn: AggResponseColumn | undefined;
+  let splitColumnIndex = -1;
+  for (let i = 0; i < columns.length; i++) {
+    if (columns[i].aggConfig?.schema === 'split') {
+      splitColumn = columns[i];
+      splitColumnIndex = i;
+      break;
+    }
+  }
 
   if (!splitColumn) {
     return [
@@ -50,8 +56,6 @@ function splitTableByColumn(
       },
     ];
   }
-
-  const splitColumnIndex = columns.findIndex((col) => col.id === splitColumn.id);
   const filteredColumns = columns.filter((_, i) => i !== splitColumnIndex);
 
   const groups: Record<string, VisTableRow[]> = {};
