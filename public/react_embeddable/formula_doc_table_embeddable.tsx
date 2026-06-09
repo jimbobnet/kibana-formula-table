@@ -16,7 +16,7 @@ export type Trigger =
   | typeof VALUE_CLICK_TRIGGER
   | typeof ROW_CLICK_TRIGGER;
 
-export const DOCUMENT_TABLE_EMBEDDABLE_TYPE = DOC_TABLE_VIS_NAME;
+export const FORMULA_DOC_TABLE_EMBEDDABLE_TYPE = DOC_TABLE_VIS_NAME;
 
 interface SOAttributes {
   title: string;
@@ -39,7 +39,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
   DocumentTableApi
 > {
   return {
-    type: DOCUMENT_TABLE_EMBEDDABLE_TYPE,
+    type: FORMULA_DOC_TABLE_EMBEDDABLE_TYPE,
     buildEmbeddable: async ({ initialState, finalizeApi, uuid, parentApi }) => {
       const rawState = initialState.rawState;
 
@@ -136,7 +136,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
           const existingId = savedObjectId$.getValue();
           const attrs = {
             title,
-            subType: DOCUMENT_TABLE_EMBEDDABLE_TYPE,
+            subType: FORMULA_DOC_TABLE_EMBEDDABLE_TYPE,
             indexId: indexId$.getValue(),
             params: JSON.stringify(params$.getValue()),
           };

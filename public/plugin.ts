@@ -20,11 +20,11 @@ import {
   setSavedObjectsClient,
 } from './services';
 import {
-  ENHANCED_TABLE_EMBEDDABLE_TYPE,
+  FORMULA_TABLE_EMBEDDABLE_TYPE,
   createEnhancedTableEmbeddableFactory,
 } from './react_embeddable/formula_table_embeddable';
 import {
-  DOCUMENT_TABLE_EMBEDDABLE_TYPE,
+  FORMULA_DOC_TABLE_EMBEDDABLE_TYPE,
   createDocumentTableEmbeddableFactory,
 } from './react_embeddable/formula_doc_table_embeddable';
 
@@ -44,10 +44,10 @@ export class FormulaTablePlugin
       name: PLUGIN_ID,
     });
 
-    embeddable.registerReactEmbeddableFactory(ENHANCED_TABLE_EMBEDDABLE_TYPE, async () =>
+    embeddable.registerReactEmbeddableFactory(FORMULA_TABLE_EMBEDDABLE_TYPE, async () =>
       createEnhancedTableEmbeddableFactory()
     );
-    embeddable.registerReactEmbeddableFactory(DOCUMENT_TABLE_EMBEDDABLE_TYPE, async () =>
+    embeddable.registerReactEmbeddableFactory(FORMULA_DOC_TABLE_EMBEDDABLE_TYPE, async () =>
       createDocumentTableEmbeddableFactory()
     );
 
@@ -55,9 +55,9 @@ export class FormulaTablePlugin
       onAdd: (container, savedObject) => {
         const attrs = savedObject.attributes as { subType?: string };
         const panelType =
-          attrs.subType === DOCUMENT_TABLE_EMBEDDABLE_TYPE
-            ? DOCUMENT_TABLE_EMBEDDABLE_TYPE
-            : ENHANCED_TABLE_EMBEDDABLE_TYPE;
+          attrs.subType === FORMULA_DOC_TABLE_EMBEDDABLE_TYPE
+            ? FORMULA_DOC_TABLE_EMBEDDABLE_TYPE
+            : FORMULA_TABLE_EMBEDDABLE_TYPE;
         container.addNewPanel(
           { panelType, serializedState: { rawState: { savedObjectId: savedObject.id } } },
           true
@@ -68,7 +68,7 @@ export class FormulaTablePlugin
       getIconForSavedObject: () => 'visTable',
       getSavedObjectSubType: (savedObject) => {
         const attrs = savedObject.attributes as { subType?: string };
-        return attrs.subType === DOCUMENT_TABLE_EMBEDDABLE_TYPE
+        return attrs.subType === FORMULA_DOC_TABLE_EMBEDDABLE_TYPE
           ? 'Formula Doc Table'
           : 'Formula Table';
       },
@@ -95,7 +95,7 @@ export class FormulaTablePlugin
       isCompatible: async ({ embeddable }) => apiCanAddNewPanel(embeddable),
       execute: async ({ embeddable }) => {
         if (!apiCanAddNewPanel(embeddable)) return;
-        embeddable.addNewPanel({ panelType: ENHANCED_TABLE_EMBEDDABLE_TYPE }, true);
+        embeddable.addNewPanel({ panelType: FORMULA_TABLE_EMBEDDABLE_TYPE }, true);
       },
     });
     deps.uiActions.attachAction(ADD_PANEL_TRIGGER, ADD_ENHANCED_TABLE_ACTION_ID);
@@ -107,7 +107,7 @@ export class FormulaTablePlugin
       isCompatible: async ({ embeddable }) => apiCanAddNewPanel(embeddable),
       execute: async ({ embeddable }) => {
         if (!apiCanAddNewPanel(embeddable)) return;
-        embeddable.addNewPanel({ panelType: DOCUMENT_TABLE_EMBEDDABLE_TYPE }, true);
+        embeddable.addNewPanel({ panelType: FORMULA_DOC_TABLE_EMBEDDABLE_TYPE }, true);
       },
     });
     deps.uiActions.attachAction(ADD_PANEL_TRIGGER, ADD_DOCUMENT_TABLE_ACTION_ID);

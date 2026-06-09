@@ -16,7 +16,7 @@ export type Trigger =
   | typeof VALUE_CLICK_TRIGGER
   | typeof ROW_CLICK_TRIGGER;
 
-export const ENHANCED_TABLE_EMBEDDABLE_TYPE = ENH_TABLE_VIS_NAME;
+export const FORMULA_TABLE_EMBEDDABLE_TYPE = ENH_TABLE_VIS_NAME;
 
 interface SOAttributes {
   title: string;
@@ -43,7 +43,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
   EnhancedTableApi
 > {
   return {
-    type: ENHANCED_TABLE_EMBEDDABLE_TYPE,
+    type: FORMULA_TABLE_EMBEDDABLE_TYPE,
     buildEmbeddable: async ({ initialState, finalizeApi, uuid, parentApi }) => {
       const rawState = initialState.rawState;
 
@@ -154,7 +154,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
           const existingId = savedObjectId$.getValue();
           const attrs = {
             title,
-            subType: ENHANCED_TABLE_EMBEDDABLE_TYPE,
+            subType: FORMULA_TABLE_EMBEDDABLE_TYPE,
             indexId: indexId$.getValue(),
             aggConfigs: JSON.stringify(aggConfigs$.getValue()),
             schemas: JSON.stringify(schemas$.getValue()),
