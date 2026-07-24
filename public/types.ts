@@ -5,6 +5,7 @@ import type { EmbeddableSetup, EmbeddableStart } from '@kbn/embeddable-plugin/pu
 import type { UiActionsStart } from '@kbn/ui-actions-plugin/public';
 import type { EmbeddableEnhancedPluginStart } from '@kbn/embeddable-enhanced-plugin/public';
 import type { ContentManagementPublicSetup } from '@kbn/content-management-plugin/public';
+import type { UnifiedSearchPublicPluginStart } from '@kbn/unified-search-plugin/public';
 
 export interface FormulaTablePluginSetup {}
 export interface FormulaTablePluginStart {}
@@ -20,5 +21,6 @@ export interface StartDependencies {
   data: DataPublicPluginStart;
   embeddable: EmbeddableStart;
   uiActions: UiActionsStart;
+  unifiedSearch: UnifiedSearchPublicPluginStart;
   embeddableEnhanced?: EmbeddableEnhancedPluginStart;
 }

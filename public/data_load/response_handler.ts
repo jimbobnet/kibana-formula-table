@@ -1,4 +1,5 @@
 import type { VisTable, VisRenderData, VisTableColumn, VisTableRow, AggConfigLike, FieldColumn } from '../../common/types';
+import { getFormatService } from '../services';
 
 interface AggResponseColumn {
   id: string;
@@ -78,7 +79,16 @@ function splitTableByColumn(
   const tables: VisTable[] = [];
   groupOrder.forEach((splitValue) => {
     const key = String(splitValue);
-    const groupTitle = `${splitColumn.name}: ${splitValue}`;
+    let displayValue = String(splitValue);
+    const serialized = splitColumn.aggConfig?.toSerializedFieldFormat?.();
+    if (serialized) {
+      try {
+        displayValue = getFormatService().deserialize(serialized as any).convert(splitValue, 'text');
+      } catch {
+        // fall back to the raw string
+      }
+    }
+    const groupTitle = `${splitColumn.name}: ${displayValue}`;
     const subTables = splitTableByColumn(filteredColumns, groups[key], groupTitle);
     tables.push(...subTables);
   });

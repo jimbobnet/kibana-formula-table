@@ -9,6 +9,7 @@ import {
 import { VALUE_CLICK_TRIGGER } from '@kbn/embeddable-plugin/public';
 import { ROW_CLICK_TRIGGER } from '@kbn/ui-actions-plugin/public';
 import { getTime } from '@kbn/data-plugin/common';
+import type { Filter } from '@kbn/es-query';
 import { DocumentTable } from '../components/table/formula_doc_table';
 import { documentTableResponseHandler } from '../data_load/response_handler';
 import { getDataViewsStart, getSearchService, getUiActions } from '../services';
@@ -22,6 +23,7 @@ interface Props {
   api: DocumentTableApi;
   indexId$: BehaviorSubject<string | undefined>;
   params$: BehaviorSubject<DocumentTableParams>;
+  filters$: BehaviorSubject<Filter[]>;
   isEditing$: BehaviorSubject<boolean>;
   onUpdateState: (update: Partial<Omit<DocumentTableSerializedState, 'title'>>) => void;
 }
@@ -30,12 +32,14 @@ export const DocumentTableEmbeddableComponent: React.FC<Props> = ({
   api,
   indexId$,
   params$,
+  filters$,
   isEditing$,
   onUpdateState,
 }) => {
   const fetchContext = useFetchContext(api);
   const indexId = useStateFromPublishingSubject(indexId$);
   const params = useStateFromPublishingSubject(params$);
+  const panelFilters = useStateFromPublishingSubject(filters$);
   const isEditing = useStateFromPublishingSubject(isEditing$);
 
   const [visData, setVisData] = useState<VisRenderData>({ tables: [], totalHits: 0 });
@@ -98,6 +102,7 @@ export const DocumentTableEmbeddableComponent: React.FC<Props> = ({
           ? getTime(dataView ?? undefined, fetchContext.timeRange)
           : null;
         const allFilters = [
+          ...(panelFilters ?? []),
           ...(fetchContext.filters ?? []),
           ...(timeRangeFilter ? [timeRangeFilter] : []),
         ];
@@ -130,7 +135,7 @@ export const DocumentTableEmbeddableComponent: React.FC<Props> = ({
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indexId, params.fieldColumns, params.hitsSize, params.sortField, params.sortOrder,
+  }, [indexId, params.fieldColumns, params.hitsSize, params.sortField, params.sortOrder, panelFilters,
       fetchContext.filters, fetchContext.query, fetchContext.searchSessionId, fetchContext.timeRange]);
 
   const fireEvent = useCallback(
@@ -181,7 +186,14 @@ export const DocumentTableEmbeddableComponent: React.FC<Props> = ({
         <DocumentTableEditFlyout
           indexId={indexId}
           params={params}
-          onSave={(update) => onUpdateState({ indexId: update.indexId, params: update.params })}
+          filters={panelFilters ?? []}
+          onSave={(update) =>
+            onUpdateState({
+              indexId: update.indexId,
+              params: update.params,
+              filters: update.filters,
+            })
+          }
           onClose={() => isEditing$.next(false)}
         />
       )}

@@ -274,7 +274,10 @@ export const TableView: React.FC<TableViewProps> = ({
       if (!seen.has(css)) {
         const cls = `et2rc_${hashStr(css)}`;
         seen.set(css, cls);
-        cssRules.push(`.${cls} { ${css} }`);
+        // Also target .euiDataGridRowCell directly: EUI sets font-size/line-height as a
+        // plain (non-:where) rule on the cell itself, which a row-level class can never
+        // override via inheritance — only a higher-specificity descendant selector can.
+        cssRules.push(`.${cls} { ${css} } .${cls} .euiDataGridRowCell { ${css} }`);
       }
       rc[idx] = seen.get(css)!;
     });
@@ -665,6 +668,7 @@ export const TableView: React.FC<TableViewProps> = ({
         sorting={{ columns: sortColumns, onSort: setSortColumns }}
         trailingControlColumns={trailingControlColumns}
         gridStyle={{ stripes: visParams.stripedRows, rowClasses }}
+        rowHeightsOptions={{ defaultHeight: 'auto' }}
         toolbarVisibility={visParams.hideToolbar ? false : {
           showColumnSelector: true,
           showDisplaySelector: false,

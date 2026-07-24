@@ -17,6 +17,7 @@ import {
   EuiPanel,
   EuiSelect,
   EuiSpacer,
+  EuiSwitch,
   EuiText,
   EuiTitle,
 } from '@elastic/eui';
@@ -360,7 +361,7 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
       <EuiAccordion
         id={`agg-advanced-${row.id}`}
         buttonContent={i18n.translate('formulaTable.aggEditor.advanced', { defaultMessage: 'Advanced' })}
-        initialIsOpen={Boolean(row.customLabel)}
+        initialIsOpen={Boolean(row.customLabel || row.params.otherBucket || row.params.missingBucket)}
         paddingSize="s"
       >
         <EuiFormRow
@@ -375,6 +376,56 @@ const AggRowEditor: React.FC<AggRowEditorProps> = ({
             onChange={(e) => onChange({ customLabel: e.target.value || undefined })}
           />
         </EuiFormRow>
+
+        {row.type === 'terms' && (
+          <>
+            <EuiSpacer size="s" />
+            <EuiSwitch
+              label={i18n.translate('formulaTable.aggEditor.otherBucket', {
+                defaultMessage: 'Group other buckets into "Other"',
+              })}
+              checked={Boolean(row.params.otherBucket)}
+              onChange={(e) => updateParam('otherBucket', e.target.checked)}
+              compressed
+            />
+            {row.params.otherBucket ? (
+              <EuiFormRow
+                label={i18n.translate('formulaTable.aggEditor.otherBucketLabel', { defaultMessage: 'Other bucket label' })}
+                display="rowCompressed"
+              >
+                <EuiFieldText
+                  compressed
+                  placeholder={i18n.translate('formulaTable.aggEditor.otherBucketLabelPlaceholder', { defaultMessage: 'Other' })}
+                  value={(row.params.otherBucketLabel as string) ?? ''}
+                  onChange={(e) => updateParam('otherBucketLabel', e.target.value)}
+                />
+              </EuiFormRow>
+            ) : null}
+
+            <EuiSpacer size="s" />
+            <EuiSwitch
+              label={i18n.translate('formulaTable.aggEditor.missingBucket', {
+                defaultMessage: 'Show missing values',
+              })}
+              checked={Boolean(row.params.missingBucket)}
+              onChange={(e) => updateParam('missingBucket', e.target.checked)}
+              compressed
+            />
+            {row.params.missingBucket ? (
+              <EuiFormRow
+                label={i18n.translate('formulaTable.aggEditor.missingBucketLabel', { defaultMessage: 'Missing value label' })}
+                display="rowCompressed"
+              >
+                <EuiFieldText
+                  compressed
+                  placeholder={i18n.translate('formulaTable.aggEditor.missingBucketLabelPlaceholder', { defaultMessage: 'Missing' })}
+                  value={(row.params.missingBucketLabel as string) ?? ''}
+                  onChange={(e) => updateParam('missingBucketLabel', e.target.value)}
+                />
+              </EuiFormRow>
+            ) : null}
+          </>
+        )}
       </EuiAccordion>
     </EuiPanel>
   );

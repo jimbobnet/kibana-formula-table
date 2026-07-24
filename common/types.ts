@@ -95,6 +95,7 @@ export interface DocumentTableParams {
 export interface AggConfigLike {
   isFilterable?: () => boolean;
   schema?: string;
+  toSerializedFieldFormat?: () => unknown;
 }
 
 export interface VisTableColumn {

@@ -7,6 +7,7 @@ import {
 } from '@kbn/presentation-publishing';
 import { VALUE_CLICK_TRIGGER } from '@kbn/embeddable-plugin/public';
 import { ROW_CLICK_TRIGGER } from '@kbn/ui-actions-plugin/public';
+import type { Filter } from '@kbn/es-query';
 import { EnhancedTable } from '../components/table/formula_table';
 import { handleRequest } from '../data_load/request_handler';
 import { enhancedTableResponseHandler } from '../data_load/response_handler';
@@ -21,6 +22,7 @@ interface Props {
   aggConfigs$: BehaviorSubject<unknown[]>;
   schemas$: BehaviorSubject<Record<string, number[]>>;
   params$: BehaviorSubject<EnhancedTableParams>;
+  filters$: BehaviorSubject<Filter[]>;
   isEditing$: BehaviorSubject<boolean>;
   onUpdateState: (update: Partial<Omit<EnhancedTableSerializedState, 'title'>>) => void;
 }
@@ -31,6 +33,7 @@ export const EnhancedTableEmbeddableComponent: React.FC<Props> = ({
   aggConfigs$,
   schemas$,
   params$,
+  filters$,
   isEditing$,
   onUpdateState,
 }) => {
@@ -39,6 +42,7 @@ export const EnhancedTableEmbeddableComponent: React.FC<Props> = ({
   const aggConfigs = useStateFromPublishingSubject(aggConfigs$);
   const schemas = useStateFromPublishingSubject(schemas$);
   const params = useStateFromPublishingSubject(params$);
+  const panelFilters = useStateFromPublishingSubject(filters$);
   const isEditing = useStateFromPublishingSubject(isEditing$);
 
   const [visData, setVisData] = useState<VisRenderData>({ tables: [], totalHits: 0 });
@@ -74,7 +78,7 @@ export const EnhancedTableEmbeddableComponent: React.FC<Props> = ({
           handleRequest({
             abortSignal: controller.signal,
             aggs,
-            filters: fetchContext.filters,
+            filters: [...(panelFilters ?? []), ...(fetchContext.filters ?? [])],
             indexPattern: dataView,
             inspectorAdapters: {} as any,
             partialRows: params.showPartialRows,
@@ -135,7 +139,7 @@ export const EnhancedTableEmbeddableComponent: React.FC<Props> = ({
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indexId, aggConfigs, schemas, params.showPartialRows, params.showMetricsAtAllLevels,
+  }, [indexId, aggConfigs, schemas, params.showPartialRows, params.showMetricsAtAllLevels, panelFilters,
       fetchContext.filters, fetchContext.query, fetchContext.searchSessionId, fetchContext.timeRange]);
 
   const fireEvent = useCallback(
@@ -188,12 +192,14 @@ export const EnhancedTableEmbeddableComponent: React.FC<Props> = ({
           aggConfigs={aggConfigs ?? []}
           schemas={schemas ?? {}}
           params={params}
+          filters={panelFilters ?? []}
           onSave={(update) => {
             onUpdateState({
               indexId: update.indexId,
               aggConfigs: update.aggConfigs,
               schemas: update.schemas,
               params: update.params,
+              filters: update.filters,
             });
           }}
           onClose={() => isEditing$.next(false)}

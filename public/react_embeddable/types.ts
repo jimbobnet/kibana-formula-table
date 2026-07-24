@@ -9,6 +9,7 @@ import type {
   HasDynamicActions,
   DynamicActionsSerializedState,
 } from '@kbn/embeddable-enhanced-plugin/public';
+import type { Filter } from '@kbn/es-query';
 import type { EnhancedTableParams, DocumentTableParams } from '../../common/types';
 
 export interface EnhancedTableSerializedState extends DynamicActionsSerializedState {
@@ -18,6 +19,7 @@ export interface EnhancedTableSerializedState extends DynamicActionsSerializedSt
   aggConfigs?: unknown[];
   schemas?: Record<string, number[]>;
   params?: EnhancedTableParams;
+  filters?: Filter[];
 }
 
 export interface DocumentTableSerializedState extends DynamicActionsSerializedState {
@@ -25,6 +27,7 @@ export interface DocumentTableSerializedState extends DynamicActionsSerializedSt
   savedObjectId?: string;
   indexId?: string;
   params?: DocumentTableParams;
+  filters?: Filter[];
 }
 
 export type EnhancedTableApi = DefaultEmbeddableApi<EnhancedTableSerializedState>

@@ -5,6 +5,7 @@ import { VALUE_CLICK_TRIGGER } from '@kbn/embeddable-plugin/public';
 import { ROW_CLICK_TRIGGER } from '@kbn/ui-actions-plugin/public';
 import { initializeTitleManager } from '@kbn/presentation-publishing';
 import { initializeUnsavedChanges } from '@kbn/presentation-containers';
+import type { Filter } from '@kbn/es-query';
 import { DOC_TABLE_VIS_NAME, SAVED_OBJECT_TYPE } from '../../common';
 import { DOCUMENT_TABLE_DEFAULT_PARAMS } from '../vis_types/document_table/default_params';
 import { getEmbeddableEnhanced, getSavedObjectsClient } from '../services';
@@ -23,6 +24,7 @@ interface SOAttributes {
   subType: string;
   indexId?: string;
   params?: string;
+  filters?: string;
 }
 
 async function loadStateFromSO(savedObjectId: string): Promise<Partial<DocumentTableSerializedState>> {
@@ -31,6 +33,7 @@ async function loadStateFromSO(savedObjectId: string): Promise<Partial<DocumentT
   return {
     indexId: attrs.indexId,
     params: attrs.params ? (JSON.parse(attrs.params) as DocumentTableParams) : { ...DOCUMENT_TABLE_DEFAULT_PARAMS },
+    filters: attrs.filters ? (JSON.parse(attrs.filters) as Filter[]) : [],
   };
 }
 
@@ -57,6 +60,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
       const savedObjectId$ = new BehaviorSubject<string | undefined>(rawState.savedObjectId);
       const indexId$ = new BehaviorSubject<string | undefined>(resolvedAttrs.indexId);
       const params$ = new BehaviorSubject(resolvedAttrs.params ?? { ...DOCUMENT_TABLE_DEFAULT_PARAMS });
+      const filters$ = new BehaviorSubject<Filter[]>(resolvedAttrs.filters ?? []);
       const isEditing$ = new BehaviorSubject<boolean>(false);
 
       const dynamicActionsManager = getEmbeddableEnhanced()?.initializeEmbeddableDynamicActions(
@@ -68,6 +72,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
       const updateState = (update: Partial<Omit<DocumentTableSerializedState, 'title'>>) => {
         if (update.indexId !== undefined) indexId$.next(update.indexId);
         if (update.params !== undefined) params$.next(update.params);
+        if (update.filters !== undefined) filters$.next(update.filters);
       };
 
       const serializeState = (): { rawState: DocumentTableSerializedState } => {
@@ -84,6 +89,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
             ...base,
             indexId: indexId$.getValue(),
             params: params$.getValue(),
+            filters: filters$.getValue(),
           },
         };
       };
@@ -96,6 +102,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
           savedObjectId$,
           indexId$,
           params$,
+          filters$,
           titleManager.anyStateChange$,
           ...(dynamicActionsManager ? [dynamicActionsManager.anyStateChange$] : [])
         ).pipe(map(() => undefined as void)),
@@ -105,6 +112,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
           savedObjectId: 'referenceEquality' as const,
           indexId: 'referenceEquality' as const,
           params: 'deepEquality' as const,
+          filters: 'deepEquality' as const,
         }),
         onReset: (lastSaved) => {
           const raw = lastSaved?.rawState;
@@ -113,6 +121,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
           savedObjectId$.next(raw?.savedObjectId);
           indexId$.next(raw?.indexId);
           params$.next(raw?.params ?? { ...DOCUMENT_TABLE_DEFAULT_PARAMS });
+          filters$.next(raw?.filters ?? []);
         },
       });
 
@@ -139,6 +148,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
             subType: FORMULA_DOC_TABLE_EMBEDDABLE_TYPE,
             indexId: indexId$.getValue(),
             params: JSON.stringify(params$.getValue()),
+            filters: JSON.stringify(filters$.getValue()),
           };
           if (existingId) {
             await getSavedObjectsClient().update<SOAttributes>(SAVED_OBJECT_TYPE, existingId, attrs);
@@ -163,6 +173,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
             ...(dynamicActionsManager?.getLatestState() ?? {}),
             indexId: indexId$.getValue(),
             params: params$.getValue(),
+            filters: filters$.getValue(),
           } as DocumentTableSerializedState,
         }),
 
@@ -195,6 +206,7 @@ export function createDocumentTableEmbeddableFactory(): EmbeddableFactory<
             api={api}
             indexId$={indexId$}
             params$={params$}
+            filters$={filters$}
             isEditing$={isEditing$}
             onUpdateState={updateState}
           />

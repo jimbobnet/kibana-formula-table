@@ -18,6 +18,9 @@ import {
   setUiActions,
   setEmbeddableEnhanced,
   setSavedObjectsClient,
+  setCoreStart,
+  setDataStart,
+  setUnifiedSearchStart,
 } from './services';
 import {
   FORMULA_TABLE_EMBEDDABLE_TYPE,
@@ -86,6 +89,9 @@ export class FormulaTablePlugin
     setUiActions(deps.uiActions);
     setEmbeddableEnhanced(deps.embeddableEnhanced);
     setSavedObjectsClient(_core.savedObjects.client);
+    setCoreStart(_core);
+    setDataStart(deps.data);
+    setUnifiedSearchStart(deps.unifiedSearch);
 
     // Register "Add panel" actions so both embeddable types appear in the dashboard Add panel menu.
     deps.uiActions.registerAction<EmbeddableApiContext>({

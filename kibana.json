@@ -1,6 +1,6 @@
 {
   "id": "formulaTable",
-  "version": "0.9.2",
+  "version": "1.0.0",
   "kibanaVersion": "kibana",
   "owner": {
     "name": "james.atack@onyphe.io",
@@ -18,7 +18,8 @@
     "inspector",
     "kibanaUtils",
     "kibanaReact",
-    "contentManagement"
+    "contentManagement",
+    "unifiedSearch"
   ],
   "optionalPlugins": ["share", "usageCollection", "embeddableEnhanced"]
 }

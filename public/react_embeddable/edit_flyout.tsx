@@ -20,6 +20,7 @@ import {
 } from '@elastic/eui';
 import type { DataViewListItem } from '@kbn/data-views-plugin/public';
 import type { DataView } from '@kbn/data-views-plugin/public';
+import type { Filter } from '@kbn/es-query';
 import type { EnhancedTableParams, DocumentTableParams } from '../../common/types';
 import { EnhancedTableOptions } from '../components/editor/enhanced_table_options';
 import { DocumentTableData } from '../components/editor/document_table_data';
@@ -31,6 +32,7 @@ import {
 } from '../components/editor/agg_configs_editor';
 import type { AggRow } from '../components/editor/agg_configs_editor';
 import { getDataViewsStart } from '../services';
+import { PanelFilterEditor } from './filter_editor';
 
 // ─── Enhanced Table ────────────────────────────────────────────────────────────
 
@@ -39,11 +41,13 @@ interface EnhancedFlyoutProps {
   aggConfigs: unknown[];
   schemas: Record<string, number[]>;
   params: EnhancedTableParams;
+  filters: Filter[];
   onSave: (update: {
     indexId: string;
     aggConfigs: unknown[];
     schemas: Record<string, number[]>;
     params: EnhancedTableParams;
+    filters: Filter[];
   }) => void;
   onClose: () => void;
 }
@@ -53,6 +57,7 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
   aggConfigs,
   schemas,
   params,
+  filters,
   onSave,
   onClose,
 }) => {
@@ -61,9 +66,10 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
     parseAggRowsFromConfig(aggConfigs, schemas)
   );
   const [localParams, setLocalParams] = useState<EnhancedTableParams>({ ...params });
+  const [localFilters, setLocalFilters] = useState<Filter[]>(filters ?? []);
   const [dataViewList, setDataViewList] = useState<DataViewListItem[]>([]);
   const [dataView, setDataView] = useState<DataView | undefined>();
-  const [activeTab, setActiveTab] = useState<'query' | 'display'>('query');
+  const [activeTab, setActiveTab] = useState<'query' | 'filters' | 'display'>('query');
 
   useEffect(() => {
     getDataViewsStart().getIdsWithTitle().then(setDataViewList).catch(() => {});
@@ -104,6 +110,7 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
       aggConfigs: serializedAggConfigs,
       schemas: serializedSchemas,
       params: localParams,
+      filters: localFilters,
     });
     onClose();
   };
@@ -120,6 +127,9 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
         <EuiTabs>
           <EuiTab isSelected={activeTab === 'query'} onClick={() => setActiveTab('query')}>
             {i18n.translate('formulaTable.editFlyout.tabQuery', { defaultMessage: 'Query' })}
+          </EuiTab>
+          <EuiTab isSelected={activeTab === 'filters'} onClick={() => setActiveTab('filters')}>
+            {i18n.translate('formulaTable.editFlyout.tabFilters', { defaultMessage: 'Filters' })}
           </EuiTab>
           <EuiTab isSelected={activeTab === 'display'} onClick={() => setActiveTab('display')}>
             {i18n.translate('formulaTable.editFlyout.tabDisplay', { defaultMessage: 'Display' })}
@@ -150,6 +160,14 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
               dataView={dataView}
             />
           </>
+        )}
+
+        {activeTab === 'filters' && (
+          <PanelFilterEditor
+            filters={localFilters}
+            dataView={dataView}
+            onChange={setLocalFilters}
+          />
         )}
 
         {activeTab === 'display' && (
@@ -199,21 +217,24 @@ export const EnhancedTableEditFlyout: React.FC<EnhancedFlyoutProps> = ({
 interface DocumentFlyoutProps {
   indexId: string | undefined;
   params: DocumentTableParams;
-  onSave: (update: { indexId: string; params: DocumentTableParams }) => void;
+  filters: Filter[];
+  onSave: (update: { indexId: string; params: DocumentTableParams; filters: Filter[] }) => void;
   onClose: () => void;
 }
 
 export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
   indexId,
   params,
+  filters,
   onSave,
   onClose,
 }) => {
   const [localIndexId, setLocalIndexId] = useState(indexId ?? '');
   const [localParams, setLocalParams] = useState<DocumentTableParams>({ ...params });
+  const [localFilters, setLocalFilters] = useState<Filter[]>(filters ?? []);
   const [dataView, setDataView] = useState<DataView | undefined>();
   const [dataViewList, setDataViewList] = useState<DataViewListItem[]>([]);
-  const [activeTab, setActiveTab] = useState<'columns' | 'display'>('columns');
+  const [activeTab, setActiveTab] = useState<'columns' | 'filters' | 'display'>('columns');
 
   useEffect(() => {
     getDataViewsStart().getIdsWithTitle().then(setDataViewList).catch(() => {});
@@ -250,7 +271,7 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
 
   const handleSave = () => {
     if (errors.length > 0) return;
-    onSave({ indexId: localIndexId, params: localParams });
+    onSave({ indexId: localIndexId, params: localParams, filters: localFilters });
     onClose();
   };
 
@@ -266,6 +287,9 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
         <EuiTabs>
           <EuiTab isSelected={activeTab === 'columns'} onClick={() => setActiveTab('columns')}>
             {i18n.translate('formulaTable.editFlyout.tabColumns', { defaultMessage: 'Columns & Query' })}
+          </EuiTab>
+          <EuiTab isSelected={activeTab === 'filters'} onClick={() => setActiveTab('filters')}>
+            {i18n.translate('formulaTable.editFlyout.tabFilters', { defaultMessage: 'Filters' })}
           </EuiTab>
           <EuiTab isSelected={activeTab === 'display'} onClick={() => setActiveTab('display')}>
             {i18n.translate('formulaTable.editFlyout.tabDisplay', { defaultMessage: 'Display' })}
@@ -297,6 +321,14 @@ export const DocumentTableEditFlyout: React.FC<DocumentFlyoutProps> = ({
               dataView={dataView}
             />
           </>
+        )}
+
+        {activeTab === 'filters' && (
+          <PanelFilterEditor
+            filters={localFilters}
+            dataView={dataView}
+            onChange={setLocalFilters}
+          />
         )}
 
         {activeTab === 'display' && (

@@ -5,6 +5,7 @@ import { VALUE_CLICK_TRIGGER } from '@kbn/embeddable-plugin/public';
 import { ROW_CLICK_TRIGGER } from '@kbn/ui-actions-plugin/public';
 import { initializeTitleManager } from '@kbn/presentation-publishing';
 import { initializeUnsavedChanges } from '@kbn/presentation-containers';
+import type { Filter } from '@kbn/es-query';
 import { ENH_TABLE_VIS_NAME, SAVED_OBJECT_TYPE } from '../../common';
 import { ENHANCED_TABLE_DEFAULT_PARAMS } from '../vis_types/enhanced_table/default_params';
 import { getEmbeddableEnhanced, getSavedObjectsClient } from '../services';
@@ -25,6 +26,7 @@ interface SOAttributes {
   aggConfigs?: string;
   schemas?: string;
   params?: string;
+  filters?: string;
 }
 
 async function loadStateFromSO(savedObjectId: string): Promise<Partial<EnhancedTableSerializedState>> {
@@ -35,6 +37,7 @@ async function loadStateFromSO(savedObjectId: string): Promise<Partial<EnhancedT
     aggConfigs: attrs.aggConfigs ? (JSON.parse(attrs.aggConfigs) as unknown[]) : [],
     schemas: attrs.schemas ? (JSON.parse(attrs.schemas) as Record<string, number[]>) : {},
     params: attrs.params ? (JSON.parse(attrs.params) as EnhancedTableParams) : { ...ENHANCED_TABLE_DEFAULT_PARAMS },
+    filters: attrs.filters ? (JSON.parse(attrs.filters) as Filter[]) : [],
   };
 }
 
@@ -63,6 +66,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
       const aggConfigs$ = new BehaviorSubject<unknown[]>(resolvedAttrs.aggConfigs ?? []);
       const schemas$ = new BehaviorSubject<Record<string, number[]>>(resolvedAttrs.schemas ?? {});
       const params$ = new BehaviorSubject(resolvedAttrs.params ?? { ...ENHANCED_TABLE_DEFAULT_PARAMS });
+      const filters$ = new BehaviorSubject<Filter[]>(resolvedAttrs.filters ?? []);
       const isEditing$ = new BehaviorSubject<boolean>(false);
 
       const dynamicActionsManager = getEmbeddableEnhanced()?.initializeEmbeddableDynamicActions(
@@ -78,6 +82,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
         if (update.aggConfigs !== undefined) aggConfigs$.next(update.aggConfigs);
         if (update.schemas !== undefined) schemas$.next(update.schemas);
         if (update.params !== undefined) params$.next(update.params);
+        if (update.filters !== undefined) filters$.next(update.filters);
       };
 
       const serializeState = (): { rawState: EnhancedTableSerializedState } => {
@@ -96,6 +101,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
             aggConfigs: aggConfigs$.getValue(),
             schemas: schemas$.getValue(),
             params: params$.getValue(),
+            filters: filters$.getValue(),
           },
         };
       };
@@ -110,6 +116,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
           aggConfigs$,
           schemas$,
           params$,
+          filters$,
           titleManager.anyStateChange$,
           ...(dynamicActionsManager ? [dynamicActionsManager.anyStateChange$] : [])
         ).pipe(map(() => undefined as void)),
@@ -121,6 +128,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
           aggConfigs: 'deepEquality' as const,
           schemas: 'deepEquality' as const,
           params: 'deepEquality' as const,
+          filters: 'deepEquality' as const,
         }),
         onReset: (lastSaved) => {
           const raw = lastSaved?.rawState;
@@ -131,6 +139,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
           aggConfigs$.next(raw?.aggConfigs ?? []);
           schemas$.next(raw?.schemas ?? {});
           params$.next(raw?.params ?? { ...ENHANCED_TABLE_DEFAULT_PARAMS });
+          filters$.next(raw?.filters ?? []);
         },
       });
 
@@ -159,6 +168,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
             aggConfigs: JSON.stringify(aggConfigs$.getValue()),
             schemas: JSON.stringify(schemas$.getValue()),
             params: JSON.stringify(params$.getValue()),
+            filters: JSON.stringify(filters$.getValue()),
           };
           if (existingId) {
             await getSavedObjectsClient().update<SOAttributes>(SAVED_OBJECT_TYPE, existingId, attrs);
@@ -185,6 +195,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
             aggConfigs: aggConfigs$.getValue(),
             schemas: schemas$.getValue(),
             params: params$.getValue(),
+            filters: filters$.getValue(),
           } as EnhancedTableSerializedState,
         }),
 
@@ -219,6 +230,7 @@ export function createEnhancedTableEmbeddableFactory(): EmbeddableFactory<
             aggConfigs$={aggConfigs$}
             schemas$={schemas$}
             params$={params$}
+            filters$={filters$}
             isEditing$={isEditing$}
             onUpdateState={updateState}
           />
